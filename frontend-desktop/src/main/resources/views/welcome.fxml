@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox fx:id="welcomeContainer" alignment="CENTER" spacing="20" 
+      xmlns="http://javafx.com/javafx" 
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.moodtunes.controllers.WelcomeController"
+      style="-fx-background-color: linear-gradient(to bottom right, #E0BBE4, #FEC8D8, #FFDAB9);">
+    
+    <padding>
+        <Insets top="50" right="50" bottom="50" left="50"/>
+    </padding>
+    
+    <!-- Retro Window Container -->
+    <VBox alignment="CENTER" spacing="0" 
+          style="-fx-background-color: #E8D3F0; -fx-background-radius: 20; -fx-border-color: #B565D8; -fx-border-width: 4; -fx-border-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 4, 4);"
+          maxWidth="400">
+        
+        <!-- Window Title Bar -->
+        <HBox alignment="CENTER_LEFT" spacing="5" 
+              style="-fx-background-color: #B565D8; -fx-background-radius: 16 16 0 0; -fx-padding: 10;">
+            
+            <!-- Window Buttons -->
+            <Region style="-fx-background-color: red; -fx-background-radius: 50%; -fx-min-width: 12; -fx-min-height: 12; -fx-border-color: rgba(0,0,0,0.3); -fx-border-width: 1; -fx-border-radius: 50%;"/>
+            <Region style="-fx-background-color: yellow; -fx-background-radius: 50%; -fx-min-width: 12; -fx-min-height: 12; -fx-border-color: rgba(0,0,0,0.3); -fx-border-width: 1; -fx-border-radius: 50%;"/>
+            <Region style="-fx-background-color: green; -fx-background-radius: 50%; -fx-min-width: 12; -fx-min-height: 12; -fx-border-color: rgba(0,0,0,0.3); -fx-border-width: 1; -fx-border-radius: 50%;"/>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <Label text="MOODTUNES.EXE" style="-fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+        </HBox>
+        
+        <!-- Content Area -->
+        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 40;">
+            
+            <!-- Icon -->
+            <Label text="🎵" style="-fx-font-size: 50px; -fx-background-color: #FF69B4; -fx-background-radius: 8; -fx-padding: 15;"/>
+            
+            <!-- App Name -->
+            <Label text="MOODTUNES" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FF69B4; -fx-letter-spacing: 2px;"/>
+            
+            <!-- Version -->
+            <Label text="v1.0 | ©2025" style="-fx-font-size: 10px; -fx-text-fill: gray;"/>
+            
+            <!-- Start Button -->
+            <Button fx:id="startButton" text="START" onAction="#handleStartButton"
+                    style="-fx-background-color: linear-gradient(to bottom, #FF69B4, #FF1493); -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-letter-spacing: 2px; -fx-padding: 12 40 12 40; -fx-background-radius: 8; -fx-border-color: #8B008B; -fx-border-width: 3; -fx-border-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 0, 0, 4, 4);"/>
+        </VBox>
+    </VBox>
+    
+    <!-- Subtitle -->
+    <Label text="♪ Elevate Your Lifestyle with Our Moods Technology ♪" 
+           style="-fx-font-size: 10px; -fx-text-fill: gray; -fx-font-style: italic;"/>
+           
+    <VBox.margin>
+        <Insets top="40"/>
+    </VBox.margin>
+</VBox>
