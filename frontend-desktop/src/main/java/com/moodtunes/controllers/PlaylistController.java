@@ -22,6 +22,12 @@ import javafx.stage.Stage;
 import com.moodtunes.models.Mood;
 import com.moodtunes.models.Song;
 import com.moodtunes.utils.SceneManager;
+import com.moodtunes.network.ApiClient;//new
+import java.net.URLEncoder;//new
+import java.nio.charset.StandardCharsets;//new
+import com.google.gson.*;//new
+import com.google.gson.reflect.TypeToken;//new
+import javafx.application.Platform;//new
 
 import java.io.IOException;
 import java.net.URL;
@@ -71,9 +77,104 @@ public class PlaylistController implements Initializable {
     private boolean isPlaying = false;
     private int currentSongIndex = -1;
 
+    private final Gson gson = new Gson();
+    private final ApiClient api = new ApiClient();//from ApiClient.java
+
     public PlaylistController(Mood mood) {
         this.currentMood = mood;
     }
+
+    //Load the playlist from backend
+    public void loadPlaylistForMood(String moodName) {
+    new Thread(() -> {
+        try {
+            //backend wants POST /playlist with {"feeling": "..."}
+            String path = "/playlist";
+            JsonObject body = new JsonObject();
+            body.addProperty("feeling", moodName); // <-- key must be 'feeling'
+
+            var resp = api.post(path, gson.toJson(body));//HTTP response (status + headers + body as a String).
+
+            if (resp.statusCode() == 200) {//check the response 
+                String json = resp.body();
+                JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+
+                // Expect: { feeling: "...", count: n, tracks: [...] }
+                JsonArray tracks = root.getAsJsonArray("tracks");
+                List<Song> songsFromApi = new ArrayList<>();
+
+                if (tracks != null) {
+                    for (JsonElement el : tracks) {
+                        JsonObject t = el.getAsJsonObject();
+
+                        // --- Defensive extraction (Audius fields can vary) ---
+                        // Common Audius-like fields:
+                        // id / track_id, title, user{name, handle}, duration (sec), artwork, etc.
+                        String id =
+                            getString(t, "id",
+                                getString(t, "track_id", UUID.randomUUID().toString()));
+
+                        String title = getString(t, "title", "Untitled");
+
+                        // artist can be nested like user.name or user.handle
+                        String artist =
+                            getString(t, "artist",
+                                getFromObj(t, "user", "name",
+                                    getFromObj(t, "user", "handle", "Unknown Artist")));
+
+                        // duration could be integer seconds; show mm:ss
+                        String durationStr = "3:00"; // fallback
+                        if (t.has("duration") && !t.get("duration").isJsonNull()) {
+                            try {
+                                int secs = t.get("duration").getAsInt();
+                                int mm = secs / 60;
+                                int ss = secs % 60;
+                                durationStr = String.format("%d:%02d", mm, ss);
+                            } catch (Exception ignore) {}
+                        } else if (t.has("durationText")) {
+                            durationStr = getString(t, "durationText", durationStr);
+                        }
+
+                        //ADD track to playlist 
+                        songsFromApi.add(new Song(id, title, artist, durationStr));
+                    }
+                }
+
+                Platform.runLater(() -> {
+                    playlist = songsFromApi;
+                    songListView.getItems().setAll(playlist); //Replaces the items in ListView with the freshly fetched songs.
+                });
+            } else {
+                System.err.println("API error: " + resp.statusCode() + " -> " + resp.body());
+                fallbackToLocal();//On failure, swaps in your prebuilt, hardcoded playlist for the current mood—also on the FX thread.
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            fallbackToLocal();
+        }
+    }, "playlist-loader").start();
+}
+
+        // helpers for safe JSON access
+        private static String getString(JsonObject o, String key, String def) {
+            return (o.has(key) && !o.get(key).isJsonNull()) ? o.get(key).getAsString() : def;
+        }
+        private static String getFromObj(JsonObject o, String objKey, String innerKey, String def) {
+            if (o.has(objKey) && o.get(objKey).isJsonObject()) {
+                JsonObject inner = o.getAsJsonObject(objKey);
+                if (inner.has(innerKey) && !inner.get(innerKey).isJsonNull()) {
+                    return inner.get(innerKey).getAsString();
+                }
+            }
+            return def;
+        }
+        private void fallbackToLocal() {
+            Platform.runLater(() -> {
+                playlist = generatePlaylistForMood(currentMood);
+                songListView.getItems().setAll(playlist);
+            });
+        }
+        
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -82,82 +183,98 @@ public class PlaylistController implements Initializable {
         // Generate playlist for mood
         playlist = generatePlaylistForMood(currentMood);
 
-        // Populate list view with custom cells
-        for (Song song : playlist) {
-            songListView.getItems().add(song);
-        }
+        songListView.getItems().setAll(playlist);
 
-        // Custom cell factory for song items
+        // Kick off the backend fetch (will overwrite the list on success)
+        loadPlaylistForMood(currentMood.getName());
+
         songListView.setCellFactory(param -> new SongListCell());
-
-        // Handle song selection
         songListView.setOnMouseClicked(event -> {
             Song selectedSong = songListView.getSelectionModel().getSelectedItem();
-            if (selectedSong != null) {
-                playSong(selectedSong);
-            }
+            if (selectedSong != null) playSong(selectedSong);
         });
 
-        // Hide mini player initially
         miniPlayer.setVisible(false);
         miniPlayer.setManaged(false);
-
-        // Set progress bar to 60%
         progressBar.setProgress(0.6);
     }
 
-    private List<Song> generatePlaylistForMood(Mood mood) {
-        List<Song> songs = new ArrayList<>();
-        String moodName = mood.getName();
+    //     // Populate list view with custom cells
+    //     for (Song song : playlist) {
+    //         songListView.getItems().add(song);
+    //     }
 
-        // Hardcoded playlists for each mood (similar to Flutter version)
-        switch (moodName) {
-            case "Happy":
-                songs.add(new Song("1", "Happy Song Title", "Artist Name", "3:45"));
-                songs.add(new Song("2", "Upbeat Track", "Artist Name", "4:12"));
-                songs.add(new Song("3", "Feel Good Music", "Artist Name", "2:58"));
-                songs.add(new Song("4", "Joyful Melody", "Artist Name", "3:22"));
-                songs.add(new Song("5", "Sunshine Vibes", "Artist Name", "3:55"));
-                break;
-            case "Sad":
-                songs.add(new Song("1", "Melancholic Tune", "Artist Name", "4:20"));
-                songs.add(new Song("2", "Rainy Day Blues", "Artist Name", "3:48"));
-                songs.add(new Song("3", "Emotional Ballad", "Artist Name", "5:10"));
-                songs.add(new Song("4", "Tears & Dreams", "Artist Name", "4:05"));
-                songs.add(new Song("5", "Lonely Night", "Artist Name", "3:33"));
-                break;
-            case "Energetic":
-                songs.add(new Song("1", "Workout Pump", "Artist Name", "3:15"));
-                songs.add(new Song("2", "High Energy Beat", "Artist Name", "2:58"));
-                songs.add(new Song("3", "Running Mix", "Artist Name", "3:42"));
-                songs.add(new Song("4", "Power Hour", "Artist Name", "4:01"));
-                songs.add(new Song("5", "Adrenaline Rush", "Artist Name", "3:28"));
-                break;
-            case "Calm":
-                songs.add(new Song("1", "Peaceful Morning", "Artist Name", "4:55"));
-                songs.add(new Song("2", "Zen Garden", "Artist Name", "5:30"));
-                songs.add(new Song("3", "Soft Whispers", "Artist Name", "4:15"));
-                songs.add(new Song("4", "Meditation Flow", "Artist Name", "6:20"));
-                songs.add(new Song("5", "Tranquil Waves", "Artist Name", "5:05"));
-                break;
-            case "Romantic":
-                songs.add(new Song("1", "Love Song", "Artist Name", "3:50"));
-                songs.add(new Song("2", "Heart Beats", "Artist Name", "4:22"));
-                songs.add(new Song("3", "Sweet Serenade", "Artist Name", "3:35"));
-                songs.add(new Song("4", "Romantic Nights", "Artist Name", "4:48"));
-                songs.add(new Song("5", "Forever Together", "Artist Name", "3:58"));
-                break;
-            case "Focus":
-                songs.add(new Song("1", "Study Mode", "Artist Name", "4:10"));
-                songs.add(new Song("2", "Deep Concentration", "Artist Name", "5:25"));
-                songs.add(new Song("3", "Brain Power", "Artist Name", "3:48"));
-                songs.add(new Song("4", "Productivity Flow", "Artist Name", "4:55"));
-                songs.add(new Song("5", "Focus Zone", "Artist Name", "5:12"));
-                break;
-        }
+    //     // Custom cell factory for song items
+    //     songListView.setCellFactory(param -> new SongListCell());
 
-        return songs;
-    }
+    //     // Handle song selection
+    //     songListView.setOnMouseClicked(event -> {
+    //         Song selectedSong = songListView.getSelectionModel().getSelectedItem();
+    //         if (selectedSong != null) {
+    //             playSong(selectedSong);
+    //         }
+    //     });
+
+    //     // Hide mini player initially
+    //     miniPlayer.setVisible(false);
+    //     miniPlayer.setManaged(false);
+
+    //     // Set progress bar to 60%
+    //     progressBar.setProgress(0.6);
+    // }
+
+    // private List<Song> generatePlaylistForMood(Mood mood) {
+    //     List<Song> songs = new ArrayList<>();
+    //     String moodName = mood.getName();
+
+    //     // Hardcoded playlists for each mood (similar to Flutter version)
+    //     switch (moodName) {
+    //         case "Happy":
+    //             songs.add(new Song("1", "Happy Song Title", "Artist Name", "3:45"));
+    //             songs.add(new Song("2", "Upbeat Track", "Artist Name", "4:12"));
+    //             songs.add(new Song("3", "Feel Good Music", "Artist Name", "2:58"));
+    //             songs.add(new Song("4", "Joyful Melody", "Artist Name", "3:22"));
+    //             songs.add(new Song("5", "Sunshine Vibes", "Artist Name", "3:55"));
+    //             break;
+    //         case "Sad":
+    //             songs.add(new Song("1", "Melancholic Tune", "Artist Name", "4:20"));
+    //             songs.add(new Song("2", "Rainy Day Blues", "Artist Name", "3:48"));
+    //             songs.add(new Song("3", "Emotional Ballad", "Artist Name", "5:10"));
+    //             songs.add(new Song("4", "Tears & Dreams", "Artist Name", "4:05"));
+    //             songs.add(new Song("5", "Lonely Night", "Artist Name", "3:33"));
+    //             break;
+    //         case "Energetic":
+    //             songs.add(new Song("1", "Workout Pump", "Artist Name", "3:15"));
+    //             songs.add(new Song("2", "High Energy Beat", "Artist Name", "2:58"));
+    //             songs.add(new Song("3", "Running Mix", "Artist Name", "3:42"));
+    //             songs.add(new Song("4", "Power Hour", "Artist Name", "4:01"));
+    //             songs.add(new Song("5", "Adrenaline Rush", "Artist Name", "3:28"));
+    //             break;
+    //         case "Calm":
+    //             songs.add(new Song("1", "Peaceful Morning", "Artist Name", "4:55"));
+    //             songs.add(new Song("2", "Zen Garden", "Artist Name", "5:30"));
+    //             songs.add(new Song("3", "Soft Whispers", "Artist Name", "4:15"));
+    //             songs.add(new Song("4", "Meditation Flow", "Artist Name", "6:20"));
+    //             songs.add(new Song("5", "Tranquil Waves", "Artist Name", "5:05"));
+    //             break;
+    //         case "Romantic":
+    //             songs.add(new Song("1", "Love Song", "Artist Name", "3:50"));
+    //             songs.add(new Song("2", "Heart Beats", "Artist Name", "4:22"));
+    //             songs.add(new Song("3", "Sweet Serenade", "Artist Name", "3:35"));
+    //             songs.add(new Song("4", "Romantic Nights", "Artist Name", "4:48"));
+    //             songs.add(new Song("5", "Forever Together", "Artist Name", "3:58"));
+    //             break;
+    //         case "Focus":
+    //             songs.add(new Song("1", "Study Mode", "Artist Name", "4:10"));
+    //             songs.add(new Song("2", "Deep Concentration", "Artist Name", "5:25"));
+    //             songs.add(new Song("3", "Brain Power", "Artist Name", "3:48"));
+    //             songs.add(new Song("4", "Productivity Flow", "Artist Name", "4:55"));
+    //             songs.add(new Song("5", "Focus Zone", "Artist Name", "5:12"));
+    //             break;
+    //     }
+
+    //     return songs;
+    // }
 
     private void playSong(Song song) {
         currentSong = song;
