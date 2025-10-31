@@ -58,7 +58,6 @@ MoodTunes-JavaFX/
                 └── 📄 styles.css                    # Global CSS styles
 
 ```
-
 ## 🚀 How to Run
 
 ### Prerequisites
