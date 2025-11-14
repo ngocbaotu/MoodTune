@@ -7,6 +7,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.moodtunes.controllers.PlaylistController"
             style="-fx-background-color: linear-gradient(to bottom, #FFF0F5, #FFE4E1);">
 
     <!-- Header -->
