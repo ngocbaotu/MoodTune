@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" 
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.moodtunes.controllers.MoodSelectionController"
+            style="-fx-background-color: linear-gradient(to bottom, #FFF0F5, #FFE4E1);">
+    
+    <!-- Header -->
+    <top>
+        <VBox style="-fx-background-color: #E0BBE4; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Button fx:id="backButton" text="←" onAction="#handleBackButton"
+                        style="-fx-background-color: #B565D8; -fx-text-fill: white; -fx-font-size: 20px; -fx-background-radius: 8; -fx-border-color: #8B008B; -fx-border-width: 2; -fx-border-radius: 8; -fx-padding: 5 10 5 10; -fx-cursor: hand;"/>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <Label text="🎵" style="-fx-font-size: 24px; -fx-text-fill: #FF69B4;"/>
+            </HBox>
+            
+            <VBox alignment="CENTER" spacing="5">
+                <VBox.margin>
+                    <Insets top="15"/>
+                </VBox.margin>
+                
+                <Label text="SELECT YOUR MOOD" 
+                       style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #8B008B; -fx-letter-spacing: 2px;"/>
+                <Label text="How are you feeling today?" 
+                       style="-fx-font-size: 12px; -fx-text-fill: gray; -fx-font-style: italic;"/>
+            </VBox>
+        </VBox>
+    </top>
+    
+    <!-- Center - Mood Grid -->
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" 
+                    style="-fx-background-color: transparent; -fx-background: transparent;">
+            <VBox alignment="CENTER">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                
+                <GridPane fx:id="moodGrid" hgap="20" vgap="20" alignment="CENTER">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                </GridPane>
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+    <!-- Bottom - Generate Button -->
+    <bottom>
+        <VBox style="-fx-background-color: #E0BBE4; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, -2);">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <Button fx:id="generateButton" text="GENERATE PLAYLIST  ▶" 
+                    onAction="#handleGeneratePlaylist"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: linear-gradient(to bottom, #FF69B4, #FF1493); -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-letter-spacing: 2px; -fx-padding: 15; -fx-background-radius: 12; -fx-border-color: #8B008B; -fx-border-width: 3; -fx-border-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 0, 0, 4, 4);"/>
+        </VBox>
+    </bottom>
+</BorderPane>

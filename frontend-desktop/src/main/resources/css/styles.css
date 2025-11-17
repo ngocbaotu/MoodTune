@@ -1,88 +1,424 @@
-/* MoodTunes JavaFX Stylesheet */
-/* Retro/Vintage Theme */
-
-/* Root styling */
+/* MOODTUNES - RETRO 80s/90s PIXEL ART STYLE */
+/* GENERAL STYLES */
 .root {
-    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-family: "Courier New", "Consolas", "Monaco", monospace;
+    -fx-background-color: #FFF4E6;
 }
 
-/* List View */
-.list-view {
-    -fx-background-insets: 0;
-    -fx-padding: 0;
+VBox, AnchorPane, StackPane {
+    -fx-background-color: linear-gradient(to bottom right, #FFE6F0 0%, #E6D9FF 100%);
 }
 
-.list-cell {
-    -fx-background-color: transparent;
-    -fx-padding: 5;
+/* WELCOME SCREEN */
+.welcome-container {
+    -fx-alignment: center;
+    -fx-padding: 40px;
+    -fx-background-color: linear-gradient(to bottom right, #FFE6F0 0%, #E6D9FF 100%);
 }
 
-.list-cell:hover {
-    -fx-background-color: transparent;
+.welcome-window {
+    -fx-background-color: #FFF4E6;
+    -fx-border-color: #000000;
+    -fx-border-width: 5px;
+    -fx-border-style: solid;
+    -fx-padding: 30px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 12, 0, 6, 6);
 }
 
-.list-cell:selected {
-    -fx-background-color: transparent;
+.window-title-bar {
+    -fx-background-color: #E6B3FF;
+    -fx-border-color: #000000;
+    -fx-border-width: 0 0 3px 0;
+    -fx-padding: 8px 12px;
 }
 
-/* Scroll Pane */
-.scroll-pane {
-    -fx-background-color: transparent;
+.window-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Courier New", monospace;
 }
 
-.scroll-pane .viewport {
-    -fx-background-color: transparent;
+.window-controls {
+    -fx-spacing: 6px;
 }
 
-.scroll-pane .scroll-bar {
-    -fx-background-color: transparent;
+.window-button {
+    -fx-min-width: 20px;
+    -fx-min-height: 20px;
+    -fx-max-width: 20px;
+    -fx-max-height: 20px;
+    -fx-background-radius: 0;
+    -fx-border-color: #000000;
+    -fx-border-width: 2px;
+    -fx-cursor: hand;
+}
+
+.window-button.close {
+    -fx-background-color: #FF6B6B;
+}
+
+.window-button.minimize {
+    -fx-background-color: #FFD93D;
+}
+
+.window-button.maximize {
+    -fx-background-color: #6BCB77;
+}
+
+.app-logo {
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FF69B4;
+    -fx-font-family: "Courier New", monospace;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 4, 0, 2, 2);
+}
+
+.pixel-icon {
+    -fx-font-size: 80px;
+}
+
+.version-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.tagline {
+    -fx-font-size: 14px;
+    -fx-text-fill: #666666;
+    -fx-font-style: italic;
+    -fx-font-family: "Courier New", monospace;
+}
+
+/* BUTTONS */
+.retro-button {
+    -fx-background-color: #FF69B4;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Courier New", monospace;
+    -fx-padding: 15px 40px;
+    -fx-border-color: #000000;
+    -fx-border-width: 4px;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 6, 0, 3, 3);
+}
+
+.retro-button:hover {
+    -fx-background-color: #FF1493;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 4, 4);
+}
+
+.retro-button:pressed {
+    -fx-translate-y: 3px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 3, 0, 2, 2);
+}
+
+.back-button {
+    -fx-background-color: #E6B3FF;
+    -fx-border-color: #000000;
+    -fx-border-width: 3px;
+    -fx-background-radius: 0;
+    -fx-min-width: 50px;
+    -fx-min-height: 50px;
+    -fx-cursor: hand;
+    -fx-font-size: 20px;
+}
+
+.back-button:hover {
+    -fx-background-color: #FFB3D9;
+}
+
+.settings-button {
+    -fx-background-color: white;
+    -fx-border-color: #000000;
+    -fx-border-width: 3px;
+    -fx-background-radius: 0;
+    -fx-min-width: 50px;
+    -fx-min-height: 50px;
+    -fx-cursor: hand;
+    -fx-font-size: 20px;
+}
+
+.settings-button:hover {
+    -fx-background-color: #FFE6B3;
+}
+
+/* MOOD SELECTION */
+.mood-selection-container {
+    -fx-background-color: linear-gradient(to bottom right, #FFE6F0 0%, #E6D9FF 100%);
+    -fx-padding: 30px;
+}
+
+.screen-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FF69B4;
+    -fx-font-family: "Courier New", monospace;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 2, 2);
+}
+
+.screen-subtitle {
+    -fx-font-size: 16px;
+    -fx-text-fill: #666666;
+    -fx-font-style: italic;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.mood-card {
+    -fx-background-color: white;
+    -fx-border-color: #000000;
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 30px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 6, 0, 3, 3);
+}
+
+.mood-card:hover {
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 5, 5);
+}
+
+.mood-card.happy {
+    -fx-background-color: #FFD700;
+}
+
+.mood-card.sad {
+    -fx-background-color: #87CEEB;
+}
+
+.mood-card.energetic {
+    -fx-background-color: #FF6347;
+}
+
+.mood-card.calm {
+    -fx-background-color: #7FCDCD;
+}
+
+.mood-card.romantic {
+    -fx-background-color: #FF69B4;
+}
+
+.mood-card.focus {
+    -fx-background-color: #9370DB;
+}
+
+.mood-emoji {
+    -fx-font-size: 64px;
+    -fx-text-fill: #000000;
+}
+
+.mood-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.mood-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Courier New", monospace;
+}
+
+/* PLAYLIST */
+.playlist-container {
+    -fx-background-color: linear-gradient(to bottom right, #FFE6F0 0%, #E6D9FF 100%);
+    -fx-padding: 20px;
+}
+
+.playlist-header {
+    -fx-background-color: #FF69B4;
+    -fx-border-color: #000000;
+    -fx-border-width: 4px;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 6, 0, 3, 3);
+}
+
+.playlist-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-font-family: "Courier New", monospace;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 2, 0, 1, 1);
+}
+
+.playlist-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.song-item {
+    -fx-background-color: #FFF4E6;
+    -fx-border-color: #000000;
+    -fx-border-width: 3px;
+    -fx-padding: 15px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 4, 0, 2, 2);
+}
+
+.song-item:hover {
+    -fx-background-color: #FFB3D9;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 6, 0, 3, 3);
+}
+
+.song-album-art {
+    -fx-background-color: #FF69B4;
+    -fx-border-color: #000000;
+    -fx-border-width: 3px;
+}
+
+.song-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.song-artist {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666666;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.song-duration {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666666;
+    -fx-font-family: "Courier New", monospace;
+}
+
+/* MINI PLAYER */
+.mini-player {
+    -fx-background-color: #E6B3FF;
+    -fx-border-color: #000000;
+    -fx-border-width: 4px 0 0 0;
+    -fx-padding: 15px 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 8, 0, 0, -4);
+}
+
+.now-playing-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.now-playing-artist {
+    -fx-font-size: 13px;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Courier New", monospace;
+}
+
+.player-button {
+    -fx-min-width: 50px;
+    -fx-min-height: 50px;
+    -fx-background-color: white;
+    -fx-border-color: #000000;
+    -fx-border-width: 3px;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 4, 0, 2, 2);
+}
+
+.player-button:hover {
+    -fx-background-color: #B3FFD9;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 6, 0, 3, 3);
+}
+
+.player-button:pressed {
+    -fx-translate-y: 2px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 1, 1);
+}
+
+.play-button {
+    -fx-min-width: 60px;
+    -fx-min-height: 60px;
+    -fx-background-color: #B3FFD9;
+}
+
+/* CASSETTE TAPE BUTTONS */
+.cassette-button {
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+    -fx-border-color: #000000;
+    -fx-border-width: 4px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 8, 0, 4, 4);
+}
+
+.cassette-button:hover {
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 12, 0, 6, 6);
+}
+
+.cassette-button:pressed {
+    -fx-translate-y: 3px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 4, 0, 2, 2);
+}
+
+.cassette-happy {
+    -fx-background-color: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
+}
+
+.cassette-sad {
+    -fx-background-color: linear-gradient(to bottom, #87CEEB 0%, #4682B4 100%);
+}
+
+.cassette-energetic {
+    -fx-background-color: linear-gradient(to bottom, #FF6347 0%, #FF4500 100%);
+}
+
+.cassette-calm {
+    -fx-background-color: linear-gradient(to bottom, #7FCDCD 0%, #20B2AA 100%);
+}
+
+.cassette-romantic {
+    -fx-background-color: linear-gradient(to bottom, #FF69B4 0%, #FF1493 100%);
+}
+
+.cassette-focus {
+    -fx-background-color: linear-gradient(to bottom, #9370DB 0%, #8A2BE2 100%);
+}
+
+/* SCROLL BARS */
+.scroll-bar {
+    -fx-background-color: #FFF4E6;
+    -fx-border-color: #000000;
+    -fx-border-width: 2px;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: #B565D8;
-    -fx-background-radius: 10;
+    -fx-background-color: #FF69B4;
+    -fx-border-color: #000000;
+    -fx-border-width: 2px;
+    -fx-background-radius: 0;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #FF1493;
 }
 
 .scroll-bar .increment-button,
 .scroll-bar .decrement-button {
-    -fx-background-color: transparent;
+    -fx-background-color: #E6B3FF;
+    -fx-border-color: #000000;
+    -fx-border-width: 2px;
+    -fx-background-radius: 0;
 }
 
-/* Buttons */
-.button {
-    -fx-cursor: hand;
-}
-
-.button:hover {
-    -fx-opacity: 0.9;
-}
-
-.button:pressed {
-    -fx-translate-y: 2px;
-}
-
-/* Progress Bar */
-.progress-bar {
-    -fx-background-color: rgba(255, 255, 255, 0.3);
-    -fx-background-radius: 2;
-}
-
-.progress-bar .track {
-    -fx-background-color: rgba(255, 255, 255, 0.3);
-    -fx-background-radius: 2;
-}
-
-.progress-bar .bar {
-    -fx-background-color: white;
-    -fx-background-radius: 2;
-}
-
-/* Labels */
-.label {
-    -fx-text-alignment: center;
-}
-
-/* VBox and HBox */
-.vbox, .hbox {
-    -fx-alignment: center;
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #000000;
 }
