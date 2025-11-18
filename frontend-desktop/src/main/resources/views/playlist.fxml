@@ -10,97 +10,139 @@
             fx:controller="com.moodtunes.controllers.PlaylistController"
             style="-fx-background-color: linear-gradient(to bottom, #FFF0F5, #FFE4E1);">
 
-    <!-- Header -->
-    <top>
-        <VBox style="-fx-background-color: linear-gradient(to right, #FF69B4, #FF1493); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);">
+        <Button text="⚙" onAction="#handleSettingsButton"
+                style="-fx-font-size: 18px; -fx-background-color: #FFF;
+                       -fx-border-color: #000000; -fx-border-width: 2;
+                       -fx-padding: 8 15; -fx-background-radius: 5; -fx-border-radius: 5;
+                       -fx-cursor: hand;"/>
+    </HBox>
+
+    <!-- Library Controls with Retro Button Styles -->
+    <HBox alignment="CENTER_LEFT" spacing="15"
+          style="-fx-background-color: #FFF4E6; -fx-border-color: #000000;
+                 -fx-border-width: 0 3 3 3; -fx-padding: 15 20;">
+
+        <!-- Shuffle Button (Retro style) -->
+        <Button text="🔀 SHUFFLE"
+                style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-font-weight: bold;
+                       -fx-background-color: linear-gradient(to bottom, #FF69B4 0%, #FF1493 100%);
+                       -fx-text-fill: #FFFFFF; -fx-padding: 12 25;
+                       -fx-border-color: #000000; -fx-border-width: 3;
+                       -fx-background-radius: 8; -fx-border-radius: 8;
+                       -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 2, 2);
+                       -fx-cursor: hand;"/>
+
+        <Label text="SORT BY:"
+               style="-fx-font-family: 'Courier New'; -fx-font-size: 14px;
+                      -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+
+        <!-- Sort Buttons (Retro tabs style) -->
+        <Button text="TITLE"
+                style="-fx-font-family: 'Courier New'; -fx-font-size: 12px; -fx-font-weight: bold;
+                       -fx-background-color: linear-gradient(to bottom, #B3FFD9 0%, #8FFFC4 100%);
+                       -fx-text-fill: #000000; -fx-padding: 10 20;
+                       -fx-border-color: #000000; -fx-border-width: 3;
+                       -fx-background-radius: 5; -fx-border-radius: 5;
+                       -fx-cursor: hand;"/>
+
+        <Button text="ARTIST"
+                style="-fx-font-family: 'Courier New'; -fx-font-size: 12px; -fx-font-weight: bold;
+                       -fx-background-color: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+                       -fx-text-fill: #000000; -fx-padding: 10 20;
+                       -fx-border-color: #000000; -fx-border-width: 3;
+                       -fx-background-radius: 5; -fx-border-radius: 5;
+                       -fx-cursor: hand;"/>
+
+        <Button text="ALBUM"
+                style="-fx-font-family: 'Courier New'; -fx-font-size: 12px; -fx-font-weight: bold;
+                       -fx-background-color: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+                       -fx-text-fill: #000000; -fx-padding: 10 20;
+                       -fx-border-color: #000000; -fx-border-width: 3;
+                       -fx-background-radius: 5; -fx-border-radius: 5;
+                       -fx-cursor: hand;"/>
+
+        <Button text="DURATION"
+                style="-fx-font-family: 'Courier New'; -fx-font-size: 12px; -fx-font-weight: bold;
+                       -fx-background-color: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+                       -fx-text-fill: #000000; -fx-padding: 10 20;
+                       -fx-border-color: #000000; -fx-border-width: 3;
+                       -fx-background-radius: 5; -fx-border-radius: 5;
+                       -fx-cursor: hand;"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Song count badge -->
+        <Label text="5 SONGS"
+               style="-fx-font-family: 'Courier New'; -fx-font-size: 14px;
+                      -fx-font-weight: bold; -fx-text-fill: #000000;
+                      -fx-background-color: #FFD700; -fx-padding: 8 15;
+                      -fx-border-color: #000000; -fx-border-width: 2;
+                      -fx-background-radius: 15; -fx-border-radius: 15;"/>
+    </HBox>
+
+    <!-- Song List -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background: #FFE4E1; -fx-background-color: #FFE4E1;
+                       -fx-border-color: #000000; -fx-border-width: 0 3 0 3;">
+        <VBox fx:id="songList" spacing="15" style="-fx-background-color: #FFE4E1;">
             <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
+                <Insets top="20" right="20" bottom="120" left="20"/>
             </padding>
-
-            <HBox alignment="CENTER_LEFT" spacing="20">
-                <Button fx:id="backButton" text="←" onAction="#handleBack"
-                        style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 20px; -fx-background-radius: 8; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8; -fx-padding: 5 10 5 10; -fx-cursor: hand;"/>
-
-                <Region HBox.hgrow="ALWAYS"/>
-
-                <Button fx:id="settingsButton" text="⚙" onAction="#handleSettings"
-                        style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 20px; -fx-background-radius: 8; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8; -fx-padding: 5 10 5 10; -fx-cursor: hand;"/>
-            </HBox>
-
-            <VBox alignment="CENTER" spacing="5">
-                <VBox.margin>
-                    <Insets top="15"/>
-                </VBox.margin>
-
-                <VBox alignment="CENTER"
-                      style="-fx-background-color: rgba(255,255,255,0.2); -fx-background-radius: 12; -fx-padding: 10;">
-                    <Label text="Your Playlist"
-                           style="-fx-font-size: 12px; -fx-text-fill: rgba(255,255,255,0.9);"/>
-                    <Label fx:id="moodLabel" text="Happy Vibes 🎵"
-                           style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white; -fx-letter-spacing: 1px;"/>
-                </VBox>
-            </VBox>
         </VBox>
-    </top>
+    </ScrollPane>
 
-    <!-- Center - Song List -->
-    <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true"
-                    style="-fx-background-color: transparent; -fx-background: transparent;">
-            <VBox>
-                <padding>
-                    <Insets top="20" right="20" bottom="20" left="20"/>
-                </padding>
+    <!-- Mini Player (Retro Media Player Style) -->
+    <HBox fx:id="miniPlayer" alignment="CENTER" spacing="20"
+          visible="false"
+          style="-fx-background-color: linear-gradient(to bottom, #FFD93D 0%, #FFC107 100%);
+                 -fx-border-color: #000000; -fx-border-width: 3 3 3 3;
+                 -fx-padding: 15;">
 
-                <ListView fx:id="songListView"
-                          style="-fx-background-color: transparent; -fx-border-color: transparent;"
-                          VBox.vgrow="ALWAYS">
-                </ListView>
-            </VBox>
-        </ScrollPane>
-    </center>
-
-    <!-- Bottom - Mini Player -->
-    <bottom>
-        <VBox fx:id="miniPlayer"
-              style="-fx-background-color: #B565D8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, -2);">
-            <padding>
-                <Insets top="15" right="20" bottom="15" left="20"/>
-            </padding>
-
-            <!-- Progress Bar -->
-            <ProgressBar fx:id="progressBar" progress="0.0" maxWidth="Infinity"
-                         style="-fx-accent: white;"/>
-
-            <VBox.margin>
-                <Insets bottom="10"/>
-            </VBox.margin>
-
-            <HBox alignment="CENTER_LEFT" spacing="15">
-                <!-- Album Art Placeholder -->
-                <Label text="🎵"
-                       style="-fx-font-size: 24px; -fx-background-color: linear-gradient(to bottom right, #FF69B4, #FF1493); -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10;"/>
-
-                <!-- Song Info -->
-                <VBox spacing="2" HBox.hgrow="ALWAYS">
-                    <Label fx:id="nowPlayingLabel" text="Song Title"
-                           style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                    <Label fx:id="nowPlayingArtist" text="Artist Name"
-                           style="-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 12px;"/>
-                </VBox>
-
-                <!-- Controls -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Button fx:id="prevButton" text="⏮" onAction="#handlePrevious"
-                            style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 18px; -fx-background-radius: 50%; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 50%; -fx-padding: 8; -fx-cursor: hand;"/>
-
-                    <Button fx:id="playPauseButton" text="▶" onAction="#handlePlayPause"
-                            style="-fx-background-color: white; -fx-text-fill: #B565D8; -fx-font-size: 20px; -fx-background-radius: 50%; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 50%; -fx-padding: 10; -fx-cursor: hand;"/>
-
-                    <Button fx:id="nextButton" text="⏭" onAction="#handleNext"
-                            style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 18px; -fx-background-radius: 50%; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 50%; -fx-padding: 8; -fx-cursor: hand;"/>
-                </HBox>
-            </HBox>
+        <!-- Album/Song Icon -->
+        <VBox alignment="CENTER"
+              style="-fx-background-color: #FF69B4; -fx-border-color: #000000;
+                     -fx-border-width: 3; -fx-padding: 10;
+                     -fx-background-radius: 5; -fx-border-radius: 5;">
+            <Label text="♪" style="-fx-font-size: 28px; -fx-text-fill: #FFFFFF;"/>
         </VBox>
-    </bottom>
-</BorderPane>
+
+        <!-- Song Info -->
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label fx:id="nowPlayingSong" text="Now Playing"
+                   style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                          -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+            <Label fx:id="nowPlayingArtist" text="Artist"
+                   style="-fx-font-family: 'Courier New'; -fx-font-size: 13px;
+                          -fx-text-fill: #333333;"/>
+        </VBox>
+
+        <!-- Player Controls (Retro style) -->
+        <HBox spacing="12" alignment="CENTER"
+              style="-fx-background-color: rgba(255,255,255,0.6); -fx-padding: 10 15;
+                     -fx-border-color: #000000; -fx-border-width: 2;
+                     -fx-background-radius: 8; -fx-border-radius: 8;">
+            <Button fx:id="prevButton" text="⏮" onAction="#handlePrevious"
+                    style="-fx-font-size: 20px; -fx-background-color: #FFFFFF;
+                           -fx-text-fill: #000000; -fx-border-color: #000000;
+                           -fx-border-width: 2; -fx-padding: 8 15;
+                           -fx-background-radius: 5; -fx-border-radius: 5;
+                           -fx-cursor: hand;"/>
+            <Button fx:id="playPauseButton" text="⏸" onAction="#handlePlayPause"
+                    style="-fx-font-size: 24px; -fx-background-color: #FF69B4;
+                           -fx-text-fill: #FFFFFF; -fx-border-color: #000000;
+                           -fx-border-width: 3; -fx-padding: 10 18;
+                           -fx-background-radius: 50%; -fx-border-radius: 50%;
+                           -fx-cursor: hand;
+                           -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 2, 2);"/>
+            <Button fx:id="nextButton" text="⏭" onAction="#handleNext"
+                    style="-fx-font-size: 20px; -fx-background-color: #FFFFFF;
+                           -fx-text-fill: #000000; -fx-border-color: #000000;
+                           -fx-border-width: 2; -fx-padding: 8 15;
+                           -fx-background-radius: 5; -fx-border-radius: 5;
+                           -fx-cursor: hand;"/>
+        </HBox>
+
+        <!-- Volume Icon -->
+        <Label text="🔊" style="-fx-font-size: 24px;"/>
+    </HBox>
+</VBox>

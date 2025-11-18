@@ -1,5 +1,6 @@
 package com.moodtunes.controllers;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -47,11 +48,29 @@ public class PlaylistController implements Initializable {
 
     private MediaPlayer mediaPlayer;
 
+    @FXML
+    private Button closeButton;
+
+    @FXML
+    private Button minimizeButton;
+
+    @FXML
+    private Button maximizeButton;
+
     private Mood currentMood;
     private List<Song> playlist = new ArrayList<>();
     private Song currentSong;
     private boolean isPlaying = false;
     private int currentSongIndex = -1;
+    private boolean isMaximized = false;
+    private double previousWidth;
+    private double previousHeight;
+    private double previousX;
+    private double previousY;
+
+    // Default constructor (required for FXML)
+    public PlaylistController() {
+    }
 
     // === FXML ===
     @FXML private Label moodLabel;
@@ -74,6 +93,19 @@ public class PlaylistController implements Initializable {
     // If you’re using a controller factory, you may still keep this:
     public PlaylistController(Mood mood) {
         this.currentMood = mood;
+
+        // Set playlist title
+        if (playlistTitle != null && mood != null) {
+            playlistTitle.setText(mood.getName() + " Vibes ♪");
+        }
+
+        // Generate and populate playlist
+        if (mood != null) {
+            playlist = generatePlaylistForMood(mood);
+            if (songList != null) {
+                populateSongList();
+            }
+        }
     }
 
     public void setMood(Mood mood) { // call this after loading FXML if needed
@@ -254,6 +286,8 @@ public class PlaylistController implements Initializable {
 
     @FXML
     private void handlePrevious() {
+        if (playlist == null || playlist.isEmpty()) return;
+
         if (currentSongIndex > 0) {
             currentSongIndex--;
             songListView.getSelectionModel().select(currentSongIndex);
@@ -274,7 +308,7 @@ public class PlaylistController implements Initializable {
     }
 
     @FXML
-    private void handleBack() {
+    private void handleBackButton() {
         try {
             disposePlayer();
             SceneManager.switchScene("mood-selection");
@@ -284,7 +318,45 @@ public class PlaylistController implements Initializable {
     }
 
     @FXML
-    private void handleSettings() {
+    private void handleSettingsButton() {
+        showSettingsDialog();
+    }
+
+    @FXML
+    private void handleClose() {
+        Stage stage = (Stage) closeButton.getScene().getWindow();
+        stage.close();
+    }
+
+    @FXML
+    private void handleMinimize() {
+        Stage stage = (Stage) minimizeButton.getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    @FXML
+    private void handleMaximize() {
+        Stage stage = (Stage) maximizeButton.getScene().getWindow();
+
+        if (!isMaximized) {
+            previousWidth = stage.getWidth();
+            previousHeight = stage.getHeight();
+            previousX = stage.getX();
+            previousY = stage.getY();
+
+            stage.setMaximized(true);
+            isMaximized = true;
+        } else {
+            stage.setMaximized(false);
+            stage.setWidth(previousWidth);
+            stage.setHeight(previousHeight);
+            stage.setX(previousX);
+            stage.setY(previousY);
+            isMaximized = false;
+        }
+    }
+
+    private void showSettingsDialog() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/settings.fxml"));
             Parent root = loader.load();
