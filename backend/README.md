@@ -15,17 +15,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Environment
-- `AUDIUS_APP_NAME` — optional; a friendly app name passed to Audius (defaults to `Moodtune`).
-- `LOG_LEVEL` — logging level (DEBUG/INFO/WARNING/ERROR). Defaults to INFO.
-
 Run locally (development server)
 
 ```bash
 cd backend
-export FLASK_APP=run.py
-export FLASK_ENV=development
+pip install -r requirements.txt
 python3 run.py
+```
+
+Check if actually got the playlist
+```bash
+cd backend
+curl -X POST http://localhost:5000/playlist \
+  -H "Content-Type: application/json" \
+  -d '{"feeling": "happy"}'
 ```
 
 Endpoints

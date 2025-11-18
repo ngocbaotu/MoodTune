@@ -1,90 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.moodtunes.controllers.PlaylistController"
-      style="-fx-background-color: #FFE4E1;">
-
-    <!-- Window Title Bar -->
-    <HBox alignment="CENTER_LEFT" spacing="15"
-          style="-fx-background-color: linear-gradient(to bottom, #E8E8E8 0%, #D0D0D0 100%);
-                 -fx-border-color: #000000; -fx-border-width: 3; -fx-padding: 10;">
-        <padding>
-            <Insets top="5" right="10" bottom="5" left="10"/>
-        </padding>
-
-        <!-- Window control buttons on LEFT with labels INSIDE circles -->
-        <HBox spacing="8" alignment="CENTER">
-            <!-- Close button with X inside -->
-            <StackPane>
-                <Button fx:id="closeButton" onAction="#handleClose"
-                        style="-fx-background-color: #FF6B6B; -fx-background-radius: 50%;
-                               -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
-                               -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 50%;
-                               -fx-cursor: hand;"/>
-                <Label text="×" mouseTransparent="true"
-                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
-            </StackPane>
-
-            <!-- Minimize button with - inside -->
-            <StackPane>
-                <Button fx:id="minimizeButton" onAction="#handleMinimize"
-                        style="-fx-background-color: #FFD93D; -fx-background-radius: 50%;
-                               -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
-                               -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 50%;
-                               -fx-cursor: hand;"/>
-                <Label text="−" mouseTransparent="true"
-                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
-            </StackPane>
-
-            <!-- Maximize button with square inside -->
-            <StackPane>
-                <Button fx:id="maximizeButton" onAction="#handleMaximize"
-                        style="-fx-background-color: #6BCB77; -fx-background-radius: 50%;
-                               -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
-                               -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 50%;
-                               -fx-cursor: hand;"/>
-                <Label text="☐" mouseTransparent="true"
-                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
-            </StackPane>
-        </HBox>
-
-        <Region HBox.hgrow="ALWAYS"/>
-
-        <!-- Title Text -->
-        <Label text="MOODTUNES - PLAYLIST"
-               style="-fx-font-family: 'Courier New'; -fx-font-size: 14px;
-                      -fx-font-weight: bold; -fx-text-fill: #000000;"/>
-    </HBox>
-
-    <!-- Top Bar with Back Button and Settings -->
-    <HBox alignment="CENTER_LEFT" spacing="20"
-          style="-fx-background-color: #FFE4E1; -fx-border-color: #000000;
-                 -fx-border-width: 0 3 0 3; -fx-padding: 20;">
-
-        <Button text="←" onAction="#handleBackButton"
-                style="-fx-font-size: 18px; -fx-background-color: #FFF;
-                       -fx-border-color: #000000; -fx-border-width: 2;
-                       -fx-padding: 8 15; -fx-background-radius: 5; -fx-border-radius: 5;
-                       -fx-cursor: hand;"/>
-
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="5">
-            <Label text="Your Playlist"
-                   style="-fx-font-family: 'Courier New'; -fx-font-size: 14px;
-                          -fx-font-weight: bold; -fx-text-fill: #666666;"/>
-            <Label fx:id="playlistTitle" text="Happy Vibes ♪"
-                   style="-fx-font-family: 'Courier New'; -fx-font-size: 32px;
-                          -fx-font-weight: bold; -fx-text-fill: #FF69B4;"/>
-        </VBox>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.moodtunes.controllers.PlaylistController"
+            style="-fx-background-color: linear-gradient(to bottom, #FFF0F5, #FFE4E1);">
 
         <Button text="⚙" onAction="#handleSettingsButton"
                 style="-fx-font-size: 18px; -fx-background-color: #FFF;

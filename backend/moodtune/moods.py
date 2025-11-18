@@ -4,4 +4,5 @@ AUDIUS_MOODS = {
     "calm": ["Chill", "Peaceful"],
     "angry": ["Fiery"],
     "energetic": ["Fiery", "Euphoric"],
+    "focus": ["Peaceful", "Chill"],      # added
 }

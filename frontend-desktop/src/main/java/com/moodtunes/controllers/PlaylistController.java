@@ -20,48 +20,33 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import com.moodtunes.models.Mood;
 import com.moodtunes.models.Song;
 import com.moodtunes.utils.SceneManager;
+import com.moodtunes.network.ApiClient;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import com.google.gson.*;
+import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-/**
- * Controller for the playlist screen
- */
 public class PlaylistController implements Initializable {
 
-    @FXML
-    private Label playlistTitle;
+    // === config / state ===
+    private static final String BACKEND_BASE = "http://localhost:5000"; // change if needed
+    private final Gson gson = new Gson();
+    private final ApiClient api = new ApiClient();
 
-    @FXML
-    private VBox songList;
-
-    @FXML
-    private HBox miniPlayer;
-
-    @FXML
-    private Label nowPlayingSong;
-
-    @FXML
-    private Label nowPlayingArtist;
-
-    @FXML
-    private Button playPauseButton;
-
-    @FXML
-    private Button prevButton;
-
-    @FXML
-    private Button nextButton;
-
-    @FXML
-    private Button backButton;
-
-    @FXML
-    private Button settingsButton;
+    private MediaPlayer mediaPlayer;
 
     @FXML
     private Button closeButton;
@@ -73,7 +58,7 @@ public class PlaylistController implements Initializable {
     private Button maximizeButton;
 
     private Mood currentMood;
-    private List<Song> playlist;
+    private List<Song> playlist = new ArrayList<>();
     private Song currentSong;
     private boolean isPlaying = false;
     private int currentSongIndex = -1;
@@ -87,8 +72,26 @@ public class PlaylistController implements Initializable {
     public PlaylistController() {
     }
 
-    // Method to set the mood after controller is created
-    public void setMood(Mood mood) {
+    // === FXML ===
+    @FXML private Label moodLabel;
+    @FXML private ListView<Song> songListView;
+    @FXML private VBox miniPlayer;
+    @FXML private Label nowPlayingLabel;
+    @FXML private Label nowPlayingArtist;
+    @FXML private ProgressBar progressBar;
+    @FXML private Button playPauseButton;
+    @FXML private Button prevButton;
+    @FXML private Button nextButton;
+    @FXML private Button backButton;
+    @FXML private Button settingsButton;
+
+    // === constructors ===
+    public PlaylistController() {
+        // required for FXMLLoader
+    }
+
+    // If you’re using a controller factory, you may still keep this:
+    public PlaylistController(Mood mood) {
         this.currentMood = mood;
 
         // Set playlist title
@@ -105,214 +108,180 @@ public class PlaylistController implements Initializable {
         }
     }
 
+    public void setMood(Mood mood) { // call this after loading FXML if needed
+        this.currentMood = mood;
+    }
+
+    // === lifecycle ===
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Hide mini player initially
-        if (miniPlayer != null) {
-            miniPlayer.setVisible(false);
-            miniPlayer.setManaged(false);
-        }
-    }
+        String moodName = (currentMood != null ? currentMood.getName() : "Calm");
+        moodLabel.setText(moodName + " Vibes 🎵");
 
-    private void populateSongList() {
-        songList.getChildren().clear();
-
-        for (Song song : playlist) {
-            HBox songItem = createSongItem(song);
-            songList.getChildren().add(songItem);
-        }
-    }
-
-    private HBox createSongItem(Song song) {
-        HBox hbox = new HBox(15);
-        hbox.setAlignment(Pos.CENTER_LEFT);
-        hbox.setPadding(new Insets(15, 20, 15, 20));
-        hbox.setStyle(
-                "-fx-background-color: linear-gradient(to right, #FFFFFF 0%, #FFF8F0 100%); " +
-                        "-fx-background-radius: 10; " +
-                        "-fx-border-color: #000000; " +
-                        "-fx-border-width: 3; " +
-                        "-fx-border-radius: 10; " +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 2, 2);");
-
-        // Music icon with retro window style
-        VBox iconBox = new VBox();
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #FF69B4 0%, #FF1493 100%); " +
-                        "-fx-border-color: #000000; " +
-                        "-fx-border-width: 3; " +
-                        "-fx-padding: 12; " +
-                        "-fx-background-radius: 8; " +
-                        "-fx-border-radius: 8;");
-
-        Label iconLabel = new Label("♪");
-        iconLabel.setFont(Font.font(24));
-        iconLabel.setStyle("-fx-text-fill: white;");
-        iconBox.getChildren().add(iconLabel);
-
-        // Song info
-        VBox infoBox = new VBox(8);
-        Label titleLabel = new Label(song.getTitle());
-        titleLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 16));
-        titleLabel.setStyle("-fx-text-fill: #000000;");
-
-        Label artistLabel = new Label(song.getArtist() + " • " + song.getDuration());
-        artistLabel.setFont(Font.font("Courier New", 13));
-        artistLabel.setStyle("-fx-text-fill: #666666;");
-
-        infoBox.getChildren().addAll(titleLabel, artistLabel);
-        HBox.setHgrow(infoBox, Priority.ALWAYS);
-
-        // Play button (retro style)
-        Button playButton = new Button("▶");
-        playButton.setFont(Font.font(20));
-        playButton.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #B3FFD9 0%, #8FFFC4 100%); " +
-                        "-fx-text-fill: #000000; " +
-                        "-fx-border-color: #000000; " +
-                        "-fx-border-width: 3; " +
-                        "-fx-padding: 10 15; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-radius: 5; " +
-                        "-fx-cursor: hand;");
-
-        hbox.getChildren().addAll(iconBox, infoBox, playButton);
-
-        // Click handler
-        hbox.setOnMouseClicked(event -> playSong(song));
-        playButton.setOnAction(event -> playSong(song));
-
-        // Hover effect
-        hbox.setOnMouseEntered(event -> {
-            hbox.setStyle(
-                    "-fx-background-color: linear-gradient(to right, #FFD700 0%, #FFC700 100%); " +
-                            "-fx-background-radius: 10; " +
-                            "-fx-border-color: #FF69B4; " +
-                            "-fx-border-width: 4; " +
-                            "-fx-border-radius: 10; " +
-                            "-fx-cursor: hand; " +
-                            "-fx-effect: dropshadow(gaussian, rgba(255,105,180,0.5), 8, 0, 0, 0);");
+        // UI wiring
+        songListView.setCellFactory(param -> new SongListCell());
+        songListView.setOnMouseClicked(event -> {
+            Song s = songListView.getSelectionModel().getSelectedItem();
+            if (s != null) playSong(s);
         });
 
-        hbox.setOnMouseExited(event -> {
-            if (song != currentSong) {
-                hbox.setStyle(
-                        "-fx-background-color: linear-gradient(to right, #FFFFFF 0%, #FFF8F0 100%); " +
-                                "-fx-background-radius: 10; " +
-                                "-fx-border-color: #000000; " +
-                                "-fx-border-width: 3; " +
-                                "-fx-border-radius: 10; " +
-                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 2, 2);");
-            } else {
-                hbox.setStyle(
-                        "-fx-background-color: linear-gradient(to right, #FFE4E1 0%, #FFD6D1 100%); " +
-                                "-fx-background-radius: 10; " +
-                                "-fx-border-color: #FF69B4; " +
-                                "-fx-border-width: 4; " +
-                                "-fx-border-radius: 10; " +
-                                "-fx-effect: dropshadow(gaussian, rgba(255,105,180,0.4), 6, 0, 0, 0);");
+        // Initial UI state
+        miniPlayer.setVisible(false);
+        miniPlayer.setManaged(false);
+        progressBar.setProgress(0);
+
+        // Placeholder while loading
+        songListView.getItems().setAll(
+            Collections.singletonList(new Song("loading", "Loading…", "Please wait", ""))
+        );
+
+        // Fetch from backend; on success it overwrites list; on error fallbackToLocal()
+        loadPlaylistForMood(moodName);
+    }
+
+    // === networking ===
+    public void loadPlaylistForMood(String moodName) {
+        new Thread(() -> {
+            try {
+                String path = "/playlist";
+                JsonObject body = new JsonObject();
+                body.addProperty("feeling",
+                    moodName == null ? "calm" : moodName.trim().toLowerCase());
+
+                var resp = api.post(path, gson.toJson(body));
+                if (resp.statusCode() == 200) {
+                    String json = resp.body();
+                    JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+                    JsonArray tracks = root.getAsJsonArray("tracks");
+
+                    List<Song> songsFromApi = new ArrayList<>();
+                    if (tracks != null) {
+                        for (JsonElement el : tracks) {
+                            JsonObject t = el.getAsJsonObject();
+
+                            String id = getString(t, "id",
+                                getString(t, "track_id", UUID.randomUUID().toString()));
+                            String title = getString(t, "title", "Untitled");
+                            String artist = getString(t, "artist",
+                                getFromObj(t, "user", "name",
+                                getFromObj(t, "user", "handle", "Unknown Artist")));
+
+                            String durationStr = "3:00";
+                            if (t.has("duration") && !t.get("duration").isJsonNull()) {
+                                try {
+                                    int secs = t.get("duration").getAsInt();
+                                    durationStr = String.format("%d:%02d", secs / 60, secs % 60);
+                                } catch (Exception ignore) {}
+                            } else if (t.has("durationText")) {
+                                durationStr = getString(t, "durationText", durationStr);
+                            }
+
+                            songsFromApi.add(new Song(id, title, artist, durationStr));
+                        }
+                    }
+
+                    Platform.runLater(() -> {
+                        playlist = songsFromApi;
+                        songListView.getItems().setAll(playlist);
+                    });
+                } else {
+                    System.err.println("API error: " + resp.statusCode() + " -> " + resp.body());
+                    fallbackToLocal();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                fallbackToLocal();
             }
-        });
-
-        return hbox;
+        }, "playlist-loader").start();
     }
 
-    private List<Song> generatePlaylistForMood(Mood mood) {
-        List<Song> songs = new ArrayList<>();
-        String moodName = mood.getName();
+    private static String getString(JsonObject o, String key, String def) {
+        return (o.has(key) && !o.get(key).isJsonNull()) ? o.get(key).getAsString() : def;
+    }
 
-        // Hardcoded playlists for each mood
-        switch (moodName) {
-            case "Happy":
-                songs.add(new Song("1", "Happy Song Title", "Artist Name", "3:45"));
-                songs.add(new Song("2", "Upbeat Track", "Artist Name", "4:12"));
-                songs.add(new Song("3", "Feel Good Music", "Artist Name", "2:58"));
-                songs.add(new Song("4", "Joyful Melody", "Artist Name", "3:22"));
-                songs.add(new Song("5", "Sunshine Vibes", "Artist Name", "3:55"));
-                break;
-            case "Sad":
-                songs.add(new Song("1", "Melancholic Tune", "Artist Name", "4:20"));
-                songs.add(new Song("2", "Rainy Day Blues", "Artist Name", "3:48"));
-                songs.add(new Song("3", "Emotional Ballad", "Artist Name", "5:10"));
-                songs.add(new Song("4", "Tears & Dreams", "Artist Name", "4:05"));
-                songs.add(new Song("5", "Lonely Night", "Artist Name", "3:33"));
-                break;
-            case "Energetic":
-                songs.add(new Song("1", "Workout Pump", "Artist Name", "3:15"));
-                songs.add(new Song("2", "High Energy Beat", "Artist Name", "2:58"));
-                songs.add(new Song("3", "Running Mix", "Artist Name", "3:42"));
-                songs.add(new Song("4", "Power Hour", "Artist Name", "4:01"));
-                songs.add(new Song("5", "Adrenaline Rush", "Artist Name", "3:28"));
-                break;
-            case "Calm":
-                songs.add(new Song("1", "Peaceful Morning", "Artist Name", "4:55"));
-                songs.add(new Song("2", "Zen Garden", "Artist Name", "5:30"));
-                songs.add(new Song("3", "Soft Whispers", "Artist Name", "4:15"));
-                songs.add(new Song("4", "Meditation Flow", "Artist Name", "6:20"));
-                songs.add(new Song("5", "Tranquil Waves", "Artist Name", "5:05"));
-                break;
-            case "Romantic":
-                songs.add(new Song("1", "Love Song", "Artist Name", "3:50"));
-                songs.add(new Song("2", "Heart Beats", "Artist Name", "4:22"));
-                songs.add(new Song("3", "Sweet Serenade", "Artist Name", "3:35"));
-                songs.add(new Song("4", "Romantic Nights", "Artist Name", "4:48"));
-                songs.add(new Song("5", "Forever Together", "Artist Name", "3:58"));
-                break;
-            case "Focus":
-                songs.add(new Song("1", "Study Mode", "Artist Name", "4:10"));
-                songs.add(new Song("2", "Deep Concentration", "Artist Name", "5:25"));
-                songs.add(new Song("3", "Brain Power", "Artist Name", "3:48"));
-                songs.add(new Song("4", "Productivity Flow", "Artist Name", "4:55"));
-                songs.add(new Song("5", "Focus Zone", "Artist Name", "5:12"));
-                break;
+    private static String getFromObj(JsonObject o, String objKey, String innerKey, String def) {
+        if (o.has(objKey) && o.get(objKey).isJsonObject()) {
+            JsonObject inner = o.getAsJsonObject(objKey);
+            if (inner.has(innerKey) && !inner.get(innerKey).isJsonNull()) {
+                return inner.get(innerKey).getAsString();
+            }
         }
-
-        return songs;
+        return def;
     }
 
+    private void fallbackToLocal() {
+        Platform.runLater(() -> {
+            String moodName = (currentMood != null ? currentMood.getName() : "Calm");
+            playlist = generatePlaylistForMood(moodName);
+            songListView.getItems().setAll(playlist);
+        });
+    }
+
+    // === playback ===
     private void playSong(Song song) {
         currentSong = song;
         currentSongIndex = playlist.indexOf(song);
-        isPlaying = true;
 
-        // Update mini player
-        if (nowPlayingSong != null) {
-            nowPlayingSong.setText(song.getTitle());
-        }
-        if (nowPlayingArtist != null) {
-            nowPlayingArtist.setText(song.getArtist());
-        }
-        if (playPauseButton != null) {
-            playPauseButton.setText("⏸");
+        if (mediaPlayer != null) {
+            try { mediaPlayer.stop(); } catch (Exception ignore) {}
+            mediaPlayer.dispose();
+            mediaPlayer = null;
         }
 
-        // Show mini player
-        if (miniPlayer != null) {
-            miniPlayer.setVisible(true);
-            miniPlayer.setManaged(true);
-        }
+        String streamUrl = BACKEND_BASE + "/audius/stream/" +
+            URLEncoder.encode(song.getId(), StandardCharsets.UTF_8);
 
-        // Update song list styling to highlight current song
-        if (songList != null) {
-            populateSongList();
-        }
+        try {
+            Media media = new Media(streamUrl);
+            mediaPlayer = new MediaPlayer(media);
 
-        // TODO: Implement actual audio playback
-        System.out.println("Now playing: " + song.getTitle());
+            mediaPlayer.setOnReady(() -> {
+                isPlaying = true;
+                nowPlayingLabel.setText(song.getTitle());
+                nowPlayingArtist.setText(song.getArtist());
+                playPauseButton.setText("⏸");
+                miniPlayer.setVisible(true);
+                miniPlayer.setManaged(true);
+                mediaPlayer.play();
+                System.out.println("Now playing: " + song.getTitle());
+            });
+
+            mediaPlayer.setOnEndOfMedia(this::handleNext);
+            mediaPlayer.setOnError(() ->
+                System.err.println("Playback error: " + mediaPlayer.getError()));
+
+            mediaPlayer.currentTimeProperty().addListener((obs, oldT, newT) -> {
+                try {
+                    Duration total = mediaPlayer.getTotalDuration();
+                    if (total != null && total.greaterThan(Duration.ZERO)) {
+                        double frac = newT.toMillis() / total.toMillis();
+                        progressBar.setProgress(Math.max(0, Math.min(1, frac)));
+                    }
+                } catch (Exception ignore) {}
+            });
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.err.println("Failed to create media: " + streamUrl);
+        }
     }
 
     @FXML
     private void handlePlayPause() {
-        if (currentSong == null) return;
-
-        isPlaying = !isPlaying;
-        if (playPauseButton != null) {
-            playPauseButton.setText(isPlaying ? "⏸" : "▶");
+        if (mediaPlayer == null) return;
+        switch (mediaPlayer.getStatus()) {
+            case PLAYING -> {
+                mediaPlayer.pause();
+                isPlaying = false;
+                playPauseButton.setText("▶");
+            }
+            case PAUSED, READY, STOPPED -> {
+                mediaPlayer.play();
+                isPlaying = true;
+                playPauseButton.setText("⏸");
+            }
+            default -> {}
         }
-
-        // TODO: Implement actual audio control
-        System.out.println(isPlaying ? "Playing" : "Paused");
     }
 
     @FXML
@@ -321,10 +290,7 @@ public class PlaylistController implements Initializable {
 
         if (currentSongIndex > 0) {
             currentSongIndex--;
-            playSong(playlist.get(currentSongIndex));
-        } else {
-            // Loop to last song
-            currentSongIndex = playlist.size() - 1;
+            songListView.getSelectionModel().select(currentSongIndex);
             playSong(playlist.get(currentSongIndex));
         }
     }
@@ -332,20 +298,19 @@ public class PlaylistController implements Initializable {
     @FXML
     private void handleNext() {
         if (playlist == null || playlist.isEmpty()) return;
-
         if (currentSongIndex < playlist.size() - 1) {
             currentSongIndex++;
-            playSong(playlist.get(currentSongIndex));
         } else {
-            // Loop back to first song
-            currentSongIndex = 0;
-            playSong(playlist.get(currentSongIndex));
+            return; // or loop to 0
         }
+        songListView.getSelectionModel().select(currentSongIndex);
+        playSong(playlist.get(currentSongIndex));
     }
 
     @FXML
     private void handleBackButton() {
         try {
+            disposePlayer();
             SceneManager.switchScene("mood-selection");
         } catch (IOException e) {
             e.printStackTrace();
@@ -395,31 +360,92 @@ public class PlaylistController implements Initializable {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/settings.fxml"));
             Parent root = loader.load();
-
             SettingsController controller = loader.getController();
 
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Settings");
             dialogStage.initModality(Modality.WINDOW_MODAL);
-
-            if (settingsButton != null && settingsButton.getScene() != null) {
-                dialogStage.initOwner(settingsButton.getScene().getWindow());
-            }
-
-            Scene scene = new Scene(root);
-            dialogStage.setScene(scene);
+            dialogStage.initOwner(settingsButton.getScene().getWindow());
+            dialogStage.setScene(new Scene(root));
 
             controller.setDialogStage(dialogStage);
-
             dialogStage.showAndWait();
 
             if (controller.isSaveClicked()) {
                 System.out.println("Settings were saved!");
+                // apply settings if needed
             }
-
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error loading settings dialog: " + e.getMessage());
+        }
+    }
+
+    private void disposePlayer() {
+        if (mediaPlayer != null) {
+            try { mediaPlayer.stop(); } catch (Exception ignore) {}
+            mediaPlayer.dispose();
+            mediaPlayer = null;
+        }
+    }
+
+    // before: private List<Song> generatePlaylistForMood(Mood mood)
+    private List<Song> generatePlaylistForMood(String moodName) {
+        if (moodName == null || moodName.isBlank()) moodName = "Calm";
+        return List.of(
+            new Song("local-1", moodName + " Track 1", "Local Artist", "3:00"),
+            new Song("local-2", moodName + " Track 2", "Local Artist", "3:10")
+        );
+    }
+
+
+    // === cell ===
+    private class SongListCell extends javafx.scene.control.ListCell<Song> {
+        @Override protected void updateItem(Song song, boolean empty) {
+            super.updateItem(song, empty);
+            if (empty || song == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            HBox hbox = new HBox(15);
+            hbox.setAlignment(Pos.CENTER_LEFT);
+            hbox.setPadding(new Insets(10));
+            hbox.setStyle("-fx-background-color: white; -fx-background-radius: 10; " +
+                          "-fx-border-color: #E0BBE4; -fx-border-width: 2; -fx-border-radius: 10;");
+
+            Label iconLabel = new Label("🎵");
+            iconLabel.setFont(Font.font(24));
+            iconLabel.setStyle("-fx-background-color: linear-gradient(to bottom right, #FF69B4, #FF1493); " +
+                               "-fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 8;");
+
+            VBox infoBox = new VBox(5);
+            Label titleLabel = new Label(song.getTitle());
+            titleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+            Label artistLabel = new Label(song.getArtist() + " • " + song.getDuration());
+            artistLabel.setFont(Font.font(12));
+            artistLabel.setTextFill(Color.GRAY);
+            infoBox.getChildren().addAll(titleLabel, artistLabel);
+            HBox.setHgrow(infoBox, Priority.ALWAYS);
+
+            Label playIcon = new Label("▶");
+            playIcon.setFont(Font.font(20));
+            playIcon.setTextFill(Color.web("#FF69B4"));
+
+            hbox.getChildren().addAll(iconLabel, infoBox, playIcon);
+            setGraphic(hbox);
+
+            hbox.setOnMouseEntered(ev -> hbox.setStyle(
+                "-fx-background-color: #FFD700; -fx-background-radius: 10; " +
+                "-fx-border-color: #FF69B4; -fx-border-width: 2; -fx-border-radius: 10; -fx-cursor: hand;"));
+            hbox.setOnMouseExited(ev -> {
+                boolean isCurrent = (song == currentSong);
+                hbox.setStyle(isCurrent
+                    ? "-fx-background-color: rgba(255,215,0,0.3); -fx-background-radius: 10; " +
+                      "-fx-border-color: #FF69B4; -fx-border-width: 2; -fx-border-radius: 10;"
+                    : "-fx-background-color: white; -fx-background-radius: 10; " +
+                      "-fx-border-color: #E0BBE4; -fx-border-width: 2; -fx-border-radius: 10;");
+            });
         }
     }
 }
