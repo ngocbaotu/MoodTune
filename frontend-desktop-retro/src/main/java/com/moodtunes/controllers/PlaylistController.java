@@ -1,5 +1,6 @@
 package com.moodtunes.controllers;
 
+import javafx.application.Platform; //ADD
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,29 +11,53 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+// ADD: Imports for audio playback
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
+
+// ADD: Import Gson for JSON parsing
+import com.google.gson.*;
+
 import com.moodtunes.models.Mood;
 import com.moodtunes.models.Song;
 import com.moodtunes.utils.SceneManager;
 
 import java.io.IOException;
+// ADD: Imports for HTTP client (backend communication)
+import java.net.URI;
 import java.net.URL;
-import java.util.*;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.*; // FIX: Import List, ArrayList, UUID
 
 /**
- * Controller for the playlist screen
+ * Controller for the playlist screen with BACKEND integration
  */
 public class PlaylistController implements Initializable {
+    // ADD: Configuration for backend API
+    private static final String BACKEND_BASE = "http://localhost:5000"; //IMPORTANT: use codespace flask URL if run in codespace
+    private static final int REQUEST_TIMEOUT_SECONDS = 30;
+    
+    // ADD: JSON parser and HTTP client for backend communication
+    private final Gson gson = new Gson(); //parser
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS)) // FIX: java.time.Duration
+            .build();
 
+    // === FXML Components ===
     @FXML
     private Label playlistTitle;
 
@@ -47,6 +72,9 @@ public class PlaylistController implements Initializable {
 
     @FXML
     private Label nowPlayingArtist;
+
+    @FXML
+    private ProgressBar progressBar; // ADD: Progress bar for playback
 
     @FXML
     private Button playPauseButton;
@@ -72,8 +100,10 @@ public class PlaylistController implements Initializable {
     @FXML
     private Button maximizeButton;
 
+    // === State ===
+    private MediaPlayer mediaPlayer; // ADD: For actual audio playback
     private Mood currentMood;
-    private List<Song> playlist;
+    private List<Song> playlist = new ArrayList<>(); // FIX: Initialize the list
     private Song currentSong;
     private boolean isPlaying = false;
     private int currentSongIndex = -1;
@@ -83,11 +113,31 @@ public class PlaylistController implements Initializable {
     private double previousX;
     private double previousY;
 
+    // === Constructors ===
     // Default constructor (required for FXML)
     public PlaylistController() {
     }
 
-    // Method to set the mood after controller is created
+    // === Initialization ===
+    // FIX: Must implement initialize() method from Initializable interface
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Hide mini player initially
+        if (miniPlayer != null) {
+            miniPlayer.setVisible(false);
+            miniPlayer.setManaged(false);
+        }
+
+        // Initialize progress bar
+        if (progressBar != null) {
+            progressBar.setProgress(0);
+        }
+    }
+
+    /**
+     * Sets the mood and triggers playlist loading from backend
+     * ADD: This now calls loadPlaylistFromBackend() instead of generatePlaylistForMood()
+     */
     public void setMood(Mood mood) {
         this.currentMood = mood;
 
@@ -96,26 +146,233 @@ public class PlaylistController implements Initializable {
             playlistTitle.setText(mood.getName() + " Vibes ♪");
         }
 
-        // Generate and populate playlist
+        // ADD: Show loading state while fetching from backend
+        if (songList != null) {
+            showLoadingState();
+        }
+
+        // ADD: fetch playlist from BACKEND
         if (mood != null) {
-            playlist = generatePlaylistForMood(mood);
-            if (songList != null) {
-                populateSongList();
-            }
+            loadPlaylistFromBackend(mood.getName());
         }
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // Hide mini player initially
-        if (miniPlayer != null) {
-            miniPlayer.setVisible(false);
-            miniPlayer.setManaged(false);
+    // === UI Helper Methods ===
+    // ADD: All these methods are NEW for showing different UI states
+
+    private void showLoadingState() {
+        songList.getChildren().clear();
+        VBox loadingBox = new VBox(20);
+        loadingBox.setAlignment(Pos.CENTER);
+        loadingBox.setPadding(new Insets(50));
+
+        Label loadingLabel = new Label("⏳ Loading playlist...");
+        loadingLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 20));
+        loadingLabel.setStyle("-fx-text-fill: #000000;");
+
+        Label waitLabel = new Label("Fetching tracks from Audius");
+        waitLabel.setFont(Font.font("Courier New", 14));
+        waitLabel.setStyle("-fx-text-fill: #666666;");
+
+        loadingBox.getChildren().addAll(loadingLabel, waitLabel);
+        songList.getChildren().add(loadingBox);
+    }
+
+    // ADD: if failed to fetch -> display UI
+    private void showErrorState(String error) {
+        songList.getChildren().clear();
+
+        VBox errorBox = new VBox(20);
+        errorBox.setAlignment(Pos.CENTER);
+        errorBox.setPadding(new Insets(50));
+
+        Label errorLabel = new Label("❌ Failed to load playlist");
+        errorLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 20));
+        errorLabel.setStyle("-fx-text-fill: #FF0000;");
+
+        Label detailLabel = new Label(error);
+        detailLabel.setFont(Font.font("Courier New", 12));
+        detailLabel.setStyle("-fx-text-fill: #666666;");
+        detailLabel.setWrapText(true);
+        detailLabel.setMaxWidth(600);
+
+        Button retryButton = new Button("Retry");
+        retryButton.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #FF69B4 0%, #FF1493 100%); " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-family: 'Courier New'; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-border-color: #000000; " +
+                        "-fx-border-width: 3; " +
+                        "-fx-padding: 10 20; " +
+                        "-fx-cursor: hand;");
+        retryButton.setOnAction(e -> {
+            if (currentMood != null) {
+                setMood(currentMood);
+            }
+        });
+
+        errorBox.getChildren().addAll(errorLabel, detailLabel, retryButton);
+        songList.getChildren().add(errorBox);
+    }
+
+    // === Backend Integration ===
+    // ADD: ALL CODE BELOW THIS IS NEW - Backend communication
+
+    /**
+     * Loads playlist from Python Flask backend
+     * ADD: This entire method is NEW - replaces hardcoded generatePlaylistForMood()
+     */
+    private void loadPlaylistFromBackend(String moodName) {
+        // ADD: Use separate thread to avoid freezing UI
+        new Thread(() -> {
+            try {
+                String feeling = moodName.trim().toLowerCase();
+                System.out.println("📡 Fetching playlist for mood: " + feeling);
+
+                // ADD: Build JSON request body
+                JsonObject requestBody = new JsonObject();
+                requestBody.addProperty("feeling", feeling);
+                requestBody.addProperty("limit", 30);
+                requestBody.addProperty("time_window", "week");
+                requestBody.addProperty("recent_first", false);
+
+                String jsonBody = gson.toJson(requestBody); //parser
+                System.out.println("📤 Request: " + jsonBody);
+
+                // ADD: Create HTTP POST request
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(BACKEND_BASE + "/playlist"))
+                        .header("Content-Type", "application/json")
+                        .timeout(java.time.Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS)) // FIX: java.time.Duration
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .build();
+
+                // ADD: Send request and wait for response
+                HttpResponse<String> response = httpClient.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                System.out.println("📥 Response status: " + response.statusCode()); //200, 300,...
+
+                // ADD: Handle response
+                if (response.statusCode() == 200) {
+                    parseAndDisplayPlaylist(response.body()); //DISPLAY playlist to UI
+                } else {
+                    String error = "Backend error: " + response.statusCode();
+                    System.err.println("❌ " + error);
+                    Platform.runLater(() -> showErrorState(error));
+                }
+
+            } catch (InterruptedException e) {
+                System.err.println("⚠️ Request interrupted");
+                Thread.currentThread().interrupt();
+                Platform.runLater(() -> showErrorState("Request was interrupted"));
+            } catch (Exception e) {
+                System.err.println("❌ Error: " + e.getMessage());
+                e.printStackTrace();
+                Platform.runLater(() -> showErrorState("Cannot connect to backend. Make sure it's running on " + BACKEND_BASE));
+            }
+        }, "playlist-fetcher").start();
+    }
+
+    /**
+     * Parses JSON response and updates UI
+     * ADD: This entire method is NEW - parses Audius API response
+     */
+    private void parseAndDisplayPlaylist(String jsonResponse) {
+        try {
+            JsonObject root = JsonParser.parseString(jsonResponse).getAsJsonObject();
+            JsonArray tracksArray = root.getAsJsonArray("tracks"); //start from the root
+
+            if (tracksArray == null || tracksArray.size() == 0) {
+                Platform.runLater(() -> showErrorState("No tracks found for this mood"));
+                return;
+            }
+
+            List<Song> fetchedSongs = new ArrayList<>();
+
+            // ADD: Parse each track from JSON
+            for (JsonElement element : tracksArray) {
+                JsonObject track = element.getAsJsonObject();
+                //info
+                String id = getJsonString(track, "id", UUID.randomUUID().toString());
+                String title = getJsonString(track, "title", "Unknown Track");
+                String artist = extractArtistName(track);
+                String duration = formatDuration(track);
+
+                fetchedSongs.add(new Song(id, title, artist, duration));
+            }
+
+            // ADD: Update UI on JavaFX thread
+            Platform.runLater(() -> {
+                playlist = fetchedSongs;
+                populateSongList();
+                System.out.println("✅ Loaded " + playlist.size() + " tracks");
+            });
+
+        } catch (Exception e) {
+            System.err.println("❌ Parse error: " + e.getMessage());
+            e.printStackTrace();
+            Platform.runLater(() -> showErrorState("Failed to parse playlist data"));
         }
     }
+
+    // === JSON Helper Methods ===
+    // ADD: Helper methods for JSON parsing (ALL NEW)
+
+    private String extractArtistName(JsonObject track) {
+        if (track.has("artist") && !track.get("artist").isJsonNull()) {
+            return track.get("artist").getAsString();
+        }
+
+        if (track.has("user") && track.get("user").isJsonObject()) {
+            JsonObject user = track.getAsJsonObject("user");
+            if (user.has("name") && !user.get("name").isJsonNull()) {
+                return user.get("name").getAsString();
+            }
+            if (user.has("handle") && !user.get("handle").isJsonNull()) {
+                return user.get("handle").getAsString();
+            }
+        }
+
+        return "Unknown Artist";
+    }
+
+    // helper: give a song duration like '3:14'
+    private String formatDuration(JsonObject track) {
+        if (track.has("duration") && !track.get("duration").isJsonNull()) {
+            try {
+                int seconds = track.get("duration").getAsInt();
+                int minutes = seconds / 60;
+                int secs = seconds % 60;
+                return String.format("%d:%02d", minutes, secs);
+            } catch (Exception ignored) {}
+        }
+
+        if (track.has("durationText") && !track.get("durationText").isJsonNull()) {
+            return track.get("durationText").getAsString();
+        }
+
+        return "3:00";
+    }
+
+    // helper
+    private String getJsonString(JsonObject obj, String key, String defaultValue) {
+        if (obj.has(key) && !obj.get(key).isJsonNull()) {
+            return obj.get(key).getAsString();
+        }
+        return defaultValue;
+    }
+
+    // === UI Population ===
 
     private void populateSongList() {
         songList.getChildren().clear();
+
+        if (playlist.isEmpty()) {
+            showErrorState("Playlist is empty");
+            return;
+        }
 
         for (Song song : playlist) {
             HBox songItem = createSongItem(song);
@@ -135,7 +392,7 @@ public class PlaylistController implements Initializable {
                         "-fx-border-radius: 10; " +
                         "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 2, 2);");
 
-        // Music icon with retro window style
+        // Music icon
         VBox iconBox = new VBox();
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setStyle(
@@ -156,6 +413,7 @@ public class PlaylistController implements Initializable {
         Label titleLabel = new Label(song.getTitle());
         titleLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 16));
         titleLabel.setStyle("-fx-text-fill: #000000;");
+        titleLabel.setMaxWidth(700);
 
         Label artistLabel = new Label(song.getArtist() + " • " + song.getDuration());
         artistLabel.setFont(Font.font("Courier New", 13));
@@ -164,7 +422,7 @@ public class PlaylistController implements Initializable {
         infoBox.getChildren().addAll(titleLabel, artistLabel);
         HBox.setHgrow(infoBox, Priority.ALWAYS);
 
-        // Play button (retro style)
+        // Play button
         Button playButton = new Button("▶");
         playButton.setFont(Font.font(20));
         playButton.setStyle(
@@ -179,11 +437,11 @@ public class PlaylistController implements Initializable {
 
         hbox.getChildren().addAll(iconBox, infoBox, playButton);
 
-        // Click handler
+        // Click handlers
         hbox.setOnMouseClicked(event -> playSong(song));
         playButton.setOnAction(event -> playSong(song));
 
-        // Hover effect
+        // Hover effects
         hbox.setOnMouseEntered(event -> {
             hbox.setStyle(
                     "-fx-background-color: linear-gradient(to right, #FFD700 0%, #FFC700 100%); " +
@@ -218,134 +476,120 @@ public class PlaylistController implements Initializable {
         return hbox;
     }
 
-    private List<Song> generatePlaylistForMood(Mood mood) {
-        List<Song> songs = new ArrayList<>();
-        String moodName = mood.getName();
-
-        // Hardcoded playlists for each mood
-        switch (moodName) {
-            case "Happy":
-                songs.add(new Song("1", "Happy Song Title", "Artist Name", "3:45"));
-                songs.add(new Song("2", "Upbeat Track", "Artist Name", "4:12"));
-                songs.add(new Song("3", "Feel Good Music", "Artist Name", "2:58"));
-                songs.add(new Song("4", "Joyful Melody", "Artist Name", "3:22"));
-                songs.add(new Song("5", "Sunshine Vibes", "Artist Name", "3:55"));
-                break;
-            case "Sad":
-                songs.add(new Song("1", "Melancholic Tune", "Artist Name", "4:20"));
-                songs.add(new Song("2", "Rainy Day Blues", "Artist Name", "3:48"));
-                songs.add(new Song("3", "Emotional Ballad", "Artist Name", "5:10"));
-                songs.add(new Song("4", "Tears & Dreams", "Artist Name", "4:05"));
-                songs.add(new Song("5", "Lonely Night", "Artist Name", "3:33"));
-                break;
-            case "Energetic":
-                songs.add(new Song("1", "Workout Pump", "Artist Name", "3:15"));
-                songs.add(new Song("2", "High Energy Beat", "Artist Name", "2:58"));
-                songs.add(new Song("3", "Running Mix", "Artist Name", "3:42"));
-                songs.add(new Song("4", "Power Hour", "Artist Name", "4:01"));
-                songs.add(new Song("5", "Adrenaline Rush", "Artist Name", "3:28"));
-                break;
-            case "Calm":
-                songs.add(new Song("1", "Peaceful Morning", "Artist Name", "4:55"));
-                songs.add(new Song("2", "Zen Garden", "Artist Name", "5:30"));
-                songs.add(new Song("3", "Soft Whispers", "Artist Name", "4:15"));
-                songs.add(new Song("4", "Meditation Flow", "Artist Name", "6:20"));
-                songs.add(new Song("5", "Tranquil Waves", "Artist Name", "5:05"));
-                break;
-            case "Romantic":
-                songs.add(new Song("1", "Love Song", "Artist Name", "3:50"));
-                songs.add(new Song("2", "Heart Beats", "Artist Name", "4:22"));
-                songs.add(new Song("3", "Sweet Serenade", "Artist Name", "3:35"));
-                songs.add(new Song("4", "Romantic Nights", "Artist Name", "4:48"));
-                songs.add(new Song("5", "Forever Together", "Artist Name", "3:58"));
-                break;
-            case "Focus":
-                songs.add(new Song("1", "Study Mode", "Artist Name", "4:10"));
-                songs.add(new Song("2", "Deep Concentration", "Artist Name", "5:25"));
-                songs.add(new Song("3", "Brain Power", "Artist Name", "3:48"));
-                songs.add(new Song("4", "Productivity Flow", "Artist Name", "4:55"));
-                songs.add(new Song("5", "Focus Zone", "Artist Name", "5:12"));
-                break;
-        }
-
-        return songs;
-    }
+    // === Playback Controls ===
+    // ADD: Modified to stream from backend instead of local files
 
     private void playSong(Song song) {
         currentSong = song;
         currentSongIndex = playlist.indexOf(song);
-        isPlaying = true;
 
-        // Update mini player
-        if (nowPlayingSong != null) {
-            nowPlayingSong.setText(song.getTitle());
-        }
-        if (nowPlayingArtist != null) {
-            nowPlayingArtist.setText(song.getArtist());
-        }
-        if (playPauseButton != null) {
-            playPauseButton.setText("⏸");
+        // Stop previous player
+        if (mediaPlayer != null) {
+            try { mediaPlayer.stop(); } catch (Exception ignored) {}
+            mediaPlayer.dispose();
+            mediaPlayer = null;
         }
 
-        // Show mini player
-        if (miniPlayer != null) {
-            miniPlayer.setVisible(true);
-            miniPlayer.setManaged(true);
-        }
+        // ADD: Build stream URL - streams from backend
+        String streamUrl = BACKEND_BASE + "/audius/stream/" +
+                URLEncoder.encode(song.getId(), StandardCharsets.UTF_8);
 
-        // Update song list styling to highlight current song
-        if (songList != null) {
-            populateSongList();
-        }
+        System.out.println("🎵 Playing: " + song.getTitle());
 
-        // TODO: Implement actual audio playback
-        System.out.println("Now playing: " + song.getTitle());
+        try {
+            // ADD: Create media player with backend stream URL
+            Media media = new Media(streamUrl);
+            mediaPlayer = new MediaPlayer(media);
+
+            // ADD: Set up event handlers for playback
+            mediaPlayer.setOnReady(() -> {
+                isPlaying = true;
+                if (nowPlayingSong != null) nowPlayingSong.setText(song.getTitle());
+                if (nowPlayingArtist != null) nowPlayingArtist.setText(song.getArtist());
+                if (playPauseButton != null) playPauseButton.setText("⏸");
+
+                if (miniPlayer != null) {
+                    miniPlayer.setVisible(true);
+                    miniPlayer.setManaged(true);
+                }
+
+                mediaPlayer.play();
+                populateSongList(); // Refresh to highlight current song
+                System.out.println("▶️ Now playing: " + song.getTitle());
+            });
+
+            mediaPlayer.setOnEndOfMedia(this::handleNext);
+            mediaPlayer.setOnError(() -> {
+                System.err.println("❌ Playback error: " + mediaPlayer.getError());
+            });
+
+            // ADD: Update progress bar as song plays
+            if (progressBar != null) {
+                mediaPlayer.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
+                    try {
+                        Duration total = mediaPlayer.getTotalDuration();
+                        if (total != null && total.greaterThan(Duration.ZERO)) {
+                            double progress = newTime.toMillis() / total.toMillis();
+                            progressBar.setProgress(Math.max(0, Math.min(1, progress)));
+                        }
+                    } catch (Exception ignored) {}
+                });
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Failed to play: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
     private void handlePlayPause() {
-        if (currentSong == null) return;
+        if (mediaPlayer == null) return;
 
-        isPlaying = !isPlaying;
-        if (playPauseButton != null) {
-            playPauseButton.setText(isPlaying ? "⏸" : "▶");
+        switch (mediaPlayer.getStatus()) {
+            case PLAYING -> {
+                mediaPlayer.pause();
+                isPlaying = false;
+                if (playPauseButton != null) playPauseButton.setText("▶");
+                System.out.println("⏸ Paused");
+            }
+            case PAUSED, READY, STOPPED -> {
+                mediaPlayer.play();
+                isPlaying = true;
+                if (playPauseButton != null) playPauseButton.setText("⏸");
+                System.out.println("▶️ Playing");
+            }
         }
-
-        // TODO: Implement actual audio control
-        System.out.println(isPlaying ? "Playing" : "Paused");
     }
 
     @FXML
     private void handlePrevious() {
-        if (playlist == null || playlist.isEmpty()) return;
+        if (playlist.isEmpty()) return;
 
         if (currentSongIndex > 0) {
             currentSongIndex--;
-            playSong(playlist.get(currentSongIndex));
         } else {
-            // Loop to last song
-            currentSongIndex = playlist.size() - 1;
-            playSong(playlist.get(currentSongIndex));
+            currentSongIndex = playlist.size() - 1; // Loop to end
         }
+        playSong(playlist.get(currentSongIndex));
     }
 
     @FXML
     private void handleNext() {
-        if (playlist == null || playlist.isEmpty()) return;
+        if (playlist.isEmpty()) return;
 
         if (currentSongIndex < playlist.size() - 1) {
             currentSongIndex++;
-            playSong(playlist.get(currentSongIndex));
         } else {
-            // Loop back to first song
-            currentSongIndex = 0;
-            playSong(playlist.get(currentSongIndex));
+            currentSongIndex = 0; // Loop to start
         }
+        playSong(playlist.get(currentSongIndex));
     }
 
     @FXML
     private void handleBackButton() {
         try {
+            disposePlayer(); // ADD: Clean up audio resources
             SceneManager.switchScene("mood-selection");
         } catch (IOException e) {
             e.printStackTrace();
@@ -357,8 +601,11 @@ public class PlaylistController implements Initializable {
         showSettingsDialog();
     }
 
+    // === Window Controls ===
+
     @FXML
     private void handleClose() {
+        disposePlayer(); // ADD: Clean up audio before closing
         Stage stage = (Stage) closeButton.getScene().getWindow();
         stage.close();
     }
@@ -378,7 +625,6 @@ public class PlaylistController implements Initializable {
             previousHeight = stage.getHeight();
             previousX = stage.getX();
             previousY = stage.getY();
-
             stage.setMaximized(true);
             isMaximized = true;
         } else {
@@ -391,11 +637,21 @@ public class PlaylistController implements Initializable {
         }
     }
 
+    // === Helper Methods ===
+    // ADD: This method is NEW - cleans up MediaPlayer resources
+
+    private void disposePlayer() {
+        if (mediaPlayer != null) {
+            try { mediaPlayer.stop(); } catch (Exception ignored) {}
+            mediaPlayer.dispose();
+            mediaPlayer = null;
+        }
+    }
+
     private void showSettingsDialog() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/settings.fxml"));
             Parent root = loader.load();
-
             SettingsController controller = loader.getController();
 
             Stage dialogStage = new Stage();
@@ -406,20 +662,15 @@ public class PlaylistController implements Initializable {
                 dialogStage.initOwner(settingsButton.getScene().getWindow());
             }
 
-            Scene scene = new Scene(root);
-            dialogStage.setScene(scene);
-
+            dialogStage.setScene(new Scene(root));
             controller.setDialogStage(dialogStage);
-
             dialogStage.showAndWait();
 
             if (controller.isSaveClicked()) {
-                System.out.println("Settings were saved!");
+                System.out.println("✅ Settings saved");
             }
-
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Error loading settings dialog: " + e.getMessage());
         }
     }
 }

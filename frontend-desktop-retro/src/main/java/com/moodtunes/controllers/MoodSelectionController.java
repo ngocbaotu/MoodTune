@@ -1,6 +1,6 @@
 package com.moodtunes.controllers;
-import javafx.scene.Node;
 
+import javafx.scene.Node;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -213,27 +213,73 @@ public class MoodSelectionController implements Initializable {
         }
     }
 
+     /**
+     * Handles generate playlist button click or direct mood selection
+     * ADD: Modified to use new loadPlaylistScreen() helper method
+     * OLD: Used to create FXMLLoader and scene switching code inline
+     * NEW: Delegates to centralized loadPlaylistScreen() method
+     */
     @FXML
     private void handleGeneratePlaylist(ActionEvent event) {
         if (selectedMood != null) {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/playlist.fxml"));
-                Parent root = loader.load();
-                PlaylistController controller = loader.getController();
-                controller.setMood(selectedMood);
-
-                // Get the current stage from the event source
-                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                Scene scene = new Scene(root, 1280, 720);
-                stage.setScene(scene);
-                stage.show();
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.err.println("Error loading playlist screen: " + e.getMessage());
-            }
+            loadPlaylistScreen(event, selectedMood); // ADD: Now uses helper method
         }
     }
 
+    /**
+     * Helper method to load playlist screen with proper mood injection
+     * ADD: This entire method is NEW - ensures mood is set AFTER FXML loads
+     * 
+     * CRITICAL CHANGE:
+     * OLD APPROACH:
+     *   1. Load FXML
+     *   2. Pass mood via constructor: new PlaylistController(mood)
+     *   3. Switch scene
+     *   Problem: Mood was set BEFORE FXML injection
+     * 
+     * NEW APPROACH:
+     *   1. Load FXML (FXML injection happens here)
+     *   2. Get controller instance from FXMLLoader
+     *   3. Call controller.setMood(mood) AFTER FXML is loaded
+     *   4. This triggers loadPlaylistFromBackend() which calls Flask API
+     *   5. Switch scene
+     *   Result: Backend API call happens at the right time!
+     */
+    private void loadPlaylistScreen(ActionEvent event, Mood mood) {
+        try {
+            // ADD: Log which mood is being loaded
+            System.out.println("🎵 Loading playlist for mood: " + mood.getName());
+            
+            // ADD: Load FXML first - this is when @FXML fields get injected
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/playlist.fxml"));
+            Parent root = loader.load(); // ADD: FXML injection happens here
+            
+            // ADD: Get the controller AFTER FXML is loaded
+            PlaylistController controller = loader.getController();
+            
+            // ADD: CRITICAL - Set mood AFTER FXML is loaded
+            // This is different from your original code which used constructor
+            // This triggers the backend API call in PlaylistController.setMood()
+            controller.setMood(mood);
+
+            // ADD: Get current stage from the event source (button that was clicked)
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            
+            // ADD: Create new scene with loaded FXML
+            Scene scene = new Scene(root, 1280, 720);
+            
+            // ADD: Switch to playlist scene
+            stage.setScene(scene);
+            stage.show();
+            
+            // ADD: Log success
+            System.out.println("✅ Playlist screen loaded");
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("❌ Error loading playlist screen: " + e.getMessage());
+        }
+    }
 
     @FXML
     private void handleBackButton() {
@@ -244,7 +290,20 @@ public class MoodSelectionController implements Initializable {
         }
     }
 
-    // New button-based mood selection methods for retro FXML
+    // === Button-based mood selection methods for retro FXML ===
+    // These methods are called directly when mood buttons are clicked
+    // ADD: All methods below now use loadPlaylistScreen() instead of inline code
+    // OLD: Each method had duplicate FXMLLoader code
+    // NEW: All methods delegate to centralized loadPlaylistScreen() helper
+
+    /**
+     * ADD: Modified to use loadPlaylistScreen() helper
+     * OLD CODE: 
+     *   selectedMood = happyMood;
+     *   handleGeneratePlaylist(event); // This used old inline approach
+     * NEW CODE:
+     *   loadPlaylistScreen(event, happyMood); // Directly calls helper
+     */
     @FXML
     private void selectHappyMood(ActionEvent event) {
         Mood happyMood = moods.stream()
@@ -252,11 +311,13 @@ public class MoodSelectionController implements Initializable {
                 .findFirst()
                 .orElse(null);
         if (happyMood != null) {
-            selectedMood = happyMood;
-            handleGeneratePlaylist(event);
+            loadPlaylistScreen(event, happyMood); // ADD: Changed from handleGeneratePlaylist(event)
         }
     }
 
+    /**
+     * ADD: Modified to use loadPlaylistScreen() helper
+     */
     @FXML
     private void selectSadMood(ActionEvent event) {
         Mood sadMood = moods.stream()
@@ -264,11 +325,13 @@ public class MoodSelectionController implements Initializable {
                 .findFirst()
                 .orElse(null);
         if (sadMood != null) {
-            selectedMood = sadMood;
-            handleGeneratePlaylist(event);
+            loadPlaylistScreen(event, sadMood); // ADD: Changed from handleGeneratePlaylist(event)
         }
     }
 
+    /**
+     * ADD: Modified to use loadPlaylistScreen() helper
+     */
     @FXML
     private void selectEnergeticMood(ActionEvent event) {
         Mood energeticMood = moods.stream()
@@ -276,11 +339,13 @@ public class MoodSelectionController implements Initializable {
                 .findFirst()
                 .orElse(null);
         if (energeticMood != null) {
-            selectedMood = energeticMood;
-            handleGeneratePlaylist(event);
+            loadPlaylistScreen(event, energeticMood); // ADD: Changed from handleGeneratePlaylist(event)
         }
     }
 
+    /**
+     * ADD: Modified to use loadPlaylistScreen() helper
+     */
     @FXML
     private void selectCalmMood(ActionEvent event) {
         Mood calmMood = moods.stream()
@@ -288,11 +353,13 @@ public class MoodSelectionController implements Initializable {
                 .findFirst()
                 .orElse(null);
         if (calmMood != null) {
-            selectedMood = calmMood;
-            handleGeneratePlaylist(event);
+            loadPlaylistScreen(event, calmMood); // ADD: Changed from handleGeneratePlaylist(event)
         }
     }
 
+    /**
+     * ADD: Modified to use loadPlaylistScreen() helper
+     */
     @FXML
     private void selectRomanticMood(ActionEvent event) {
         Mood romanticMood = moods.stream()
@@ -300,11 +367,13 @@ public class MoodSelectionController implements Initializable {
                 .findFirst()
                 .orElse(null);
         if (romanticMood != null) {
-            selectedMood = romanticMood;
-            handleGeneratePlaylist(event);
+            loadPlaylistScreen(event, romanticMood); // ADD: Changed from handleGeneratePlaylist(event)
         }
     }
 
+    /**
+     * ADD: Modified to use loadPlaylistScreen() helper
+     */
     @FXML
     private void selectFocusMood(ActionEvent event) {
         Mood focusMood = moods.stream()
@@ -312,11 +381,12 @@ public class MoodSelectionController implements Initializable {
                 .findFirst()
                 .orElse(null);
         if (focusMood != null) {
-            selectedMood = focusMood;
-            handleGeneratePlaylist(event);
+            loadPlaylistScreen(event, focusMood); // ADD: Changed from handleGeneratePlaylist(event)
         }
     }
-    //window controls
+
+    // === Window controls ===
+
     @FXML
     private void handleClose() {
         Stage stage = (Stage) closeButton.getScene().getWindow();
