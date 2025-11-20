@@ -1,0 +1,88 @@
+/* MoodTunes JavaFX Stylesheet */
+/* Retro/Vintage Theme */
+
+/* Root styling */
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+/* List View */
+.list-view {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 5;
+}
+
+.list-cell:hover {
+    -fx-background-color: transparent;
+}
+
+.list-cell:selected {
+    -fx-background-color: transparent;
+}
+
+/* Scroll Pane */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #B565D8;
+    -fx-background-radius: 10;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+}
+
+/* Buttons */
+.button {
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-opacity: 0.9;
+}
+
+.button:pressed {
+    -fx-translate-y: 2px;
+}
+
+/* Progress Bar */
+.progress-bar {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-background-radius: 2;
+}
+
+.progress-bar .track {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-background-radius: 2;
+}
+
+.progress-bar .bar {
+    -fx-background-color: white;
+    -fx-background-radius: 2;
+}
+
+/* Labels */
+.label {
+    -fx-text-alignment: center;
+}
+
+/* VBox and HBox */
+.vbox, .hbox {
+    -fx-alignment: center;
+}
