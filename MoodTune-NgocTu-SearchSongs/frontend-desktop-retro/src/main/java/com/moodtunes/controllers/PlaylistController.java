@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  */
 public class PlaylistController implements Initializable {
     // Configuration for backend API
-    private static final String BACKEND_BASE = "https://humble-couscous-p46449xqqrgc9p9q-5000.app.github.dev/";
+    private static final String BACKEND_BASE = "https://animated-space-goldfish-rqxqqwjvxr62pwxj-5000.app.github.dev/";
     private static final int REQUEST_TIMEOUT_SECONDS = 30;
 
     // JSON parser and HTTP client for backend communication
