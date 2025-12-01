@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.shape.Circle?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.moodtunes.controllers.MoodSelectionController"
+      styleClass="mood-selection-container"
+      spacing="25">
+
+    <!-- Window Title Bar -->
+    <HBox alignment="CENTER_LEFT" spacing="15"
+          style="-fx-background-color: #D8BFD8; -fx-border-color: #000000;
+                 -fx-border-width: 0 0 3 0; -fx-padding: 10 15;">
+
+        <!-- Window control buttons with labels INSIDE circles -->
+        <HBox spacing="8" alignment="CENTER">
+            <!-- Close button with X inside -->
+            <StackPane>
+                <Button fx:id="closeButton" onAction="#handleClose"
+                        style="-fx-background-color: #FF6B6B; -fx-background-radius: 50%;
+                               -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
+                               -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 50%;
+                               -fx-cursor: hand;"/>
+                <Label text="×" mouseTransparent="true"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+            </StackPane>
+
+            <!-- Minimize button with - inside -->
+            <StackPane>
+                <Button fx:id="minimizeButton" onAction="#handleMinimize"
+                        style="-fx-background-color: #FFD93D; -fx-background-radius: 50%;
+                               -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
+                               -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 50%;
+                               -fx-cursor: hand;"/>
+                <Label text="−" mouseTransparent="true"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+            </StackPane>
+
+            <!-- Maximize button with square inside -->
+            <StackPane>
+                <Button fx:id="maximizeButton" onAction="#handleMaximize"
+                        style="-fx-background-color: #6BCB77; -fx-background-radius: 50%;
+                               -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
+                               -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 50%;
+                               -fx-cursor: hand;"/>
+                <Label text="☐" mouseTransparent="true"
+                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+            </StackPane>
+        </HBox>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Label text="MOODTUNES - SELECT MOOD"
+               style="-fx-font-family: 'Courier New'; -fx-font-size: 14px;
+                      -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+    </HBox>
+
+    <!-- Top Bar -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <padding><Insets top="20" right="20" bottom="10" left="20"/></padding>
+        <Button styleClass="back-button" text="←" onAction="#handleBackButton"/>
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="5">
+            <Label text="SELECT YOUR MOOD" styleClass="screen-title"/>
+            <Label text="How are you feeling today?" styleClass="screen-subtitle"/>
+        </VBox>
+        <Label text="♪" style="-fx-font-size: 32px; -fx-text-fill: #FF69B4;"/>
+    </HBox>
+
+    <!-- Cassette Tape Grid -->
+    <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS"
+                style="-fx-background: transparent; -fx-background-color: transparent;">
+        <VBox spacing="35" alignment="CENTER">
+            <padding><Insets top="20" right="40" bottom="40" left="40"/></padding>
+
+            <!-- Row 1: Happy & Sad -->
+            <HBox spacing="50" alignment="CENTER">
+                <!-- Happy Cassette -->
+                <VBox alignment="CENTER" spacing="12">
+                    <Button styleClass="cassette-button" onAction="#selectHappyMood"
+                            prefWidth="340" prefHeight="200"
+                            style="-fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0;">
+                        <graphic>
+                            <StackPane>
+                                <!-- Main cassette body -->
+                                <Rectangle width="340" height="200" arcWidth="20" arcHeight="20"
+                                           style="-fx-fill: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
+                                                 -fx-stroke: #000000; -fx-stroke-width: 4;"/>
+
+                                <!-- Top label area -->
+                                <Rectangle width="280" height="120" translateY="-25" arcWidth="10" arcHeight="10"
+                                           style="-fx-fill: #FFF8DC; -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+
+                                <!-- Cassette holes (reels) -->
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                </HBox>
+
+                                <!-- Inner reel details -->
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                </HBox>
+
+                                <!-- Tape window -->
+                                <Rectangle width="120" height="35" translateY="-25"
+                                           style="-fx-fill: rgba(139, 69, 19, 0.3); -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+
+                                <!-- Label text -->
+                                <Label text="♪ HAPPY VIBES ♪" translateY="-65"
+                                       style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                                              -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+
+                                <!-- Bottom screws -->
+                                <HBox spacing="280" translateY="70" alignment="CENTER">
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                </HBox>
+
+                                <!-- Bottom holes -->
+                                <HBox spacing="40" translateY="75" alignment="CENTER">
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                </HBox>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+                    <Label text="HAPPY" style="-fx-font-family: 'Courier New'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                    <Label text="Upbeat &amp; Joyful" style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-text-fill: #666666;"/>
+                </VBox>
+
+                <!-- Sad Cassette -->
+                <VBox alignment="CENTER" spacing="12">
+                    <Button styleClass="cassette-button" onAction="#selectSadMood"
+                            prefWidth="340" prefHeight="200"
+                            style="-fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0;">
+                        <graphic>
+                            <StackPane>
+                                <!-- Main cassette body -->
+                                <Rectangle width="340" height="200" arcWidth="20" arcHeight="20"
+                                           style="-fx-fill: linear-gradient(to bottom, #87CEEB 0%, #4682B4 100%);
+                                                 -fx-stroke: #000000; -fx-stroke-width: 4;"/>
+
+                                <!-- Top label area -->
+                                <Rectangle width="280" height="120" translateY="-25" arcWidth="10" arcHeight="10"
+                                           style="-fx-fill: #E6F3FF; -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+
+                                <!-- Cassette holes (reels) -->
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                </HBox>
+
+                                <!-- Inner reel details -->
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                </HBox>
+
+                                <!-- Tape window -->
+                                <Rectangle width="120" height="35" translateY="-25"
+                                           style="-fx-fill: rgba(139, 69, 19, 0.3); -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+
+                                <!-- Label text -->
+                                <Label text="♪ SAD FEELS ♪" translateY="-65"
+                                       style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                                              -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+
+                                <!-- Bottom screws -->
+                                <HBox spacing="280" translateY="70" alignment="CENTER">
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                </HBox>
+
+                                <!-- Bottom holes -->
+                                <HBox spacing="40" translateY="75" alignment="CENTER">
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                </HBox>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+                    <Label text="SAD" style="-fx-font-family: 'Courier New'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                    <Label text="Melancholic &amp; Reflective" style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-text-fill: #666666;"/>
+                </VBox>
+            </HBox>
+
+            <!-- Row 2: Energetic & Calm -->
+            <HBox spacing="50" alignment="CENTER">
+                <!-- Energetic Cassette -->
+                <VBox alignment="CENTER" spacing="12">
+                    <Button styleClass="cassette-button" onAction="#selectEnergeticMood"
+                            prefWidth="340" prefHeight="200"
+                            style="-fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0;">
+                        <graphic>
+                            <StackPane>
+                                <Rectangle width="340" height="200" arcWidth="20" arcHeight="20"
+                                           style="-fx-fill: linear-gradient(to bottom, #FF4500 0%, #FF6347 100%);
+                                                 -fx-stroke: #000000; -fx-stroke-width: 4;"/>
+                                <Rectangle width="280" height="120" translateY="-25" arcWidth="10" arcHeight="10"
+                                           style="-fx-fill: #FFE4E1; -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                </HBox>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                </HBox>
+                                <Rectangle width="120" height="35" translateY="-25"
+                                           style="-fx-fill: rgba(139, 69, 19, 0.3); -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <Label text="♪ ENERGY MIX ♪" translateY="-65"
+                                       style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                                              -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                                <HBox spacing="280" translateY="70" alignment="CENTER">
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                </HBox>
+                                <HBox spacing="40" translateY="75" alignment="CENTER">
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                </HBox>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+                    <Label text="ENERGETIC" style="-fx-font-family: 'Courier New'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                    <Label text="High-Energy &amp; Pumped" style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-text-fill: #666666;"/>
+                </VBox>
+
+                <!-- Calm Cassette (similar structure) -->
+                <VBox alignment="CENTER" spacing="12">
+                    <Button styleClass="cassette-button" onAction="#selectCalmMood"
+                            prefWidth="340" prefHeight="200"
+                            style="-fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0;">
+                        <graphic>
+                            <StackPane>
+                                <Rectangle width="340" height="200" arcWidth="20" arcHeight="20"
+                                           style="-fx-fill: linear-gradient(to bottom, #20B2AA 0%, #48D1CC 100%);
+                                                 -fx-stroke: #000000; -fx-stroke-width: 4;"/>
+                                <Rectangle width="280" height="120" translateY="-25" arcWidth="10" arcHeight="10"
+                                           style="-fx-fill: #E0FFFF; -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                </HBox>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                </HBox>
+                                <Rectangle width="120" height="35" translateY="-25"
+                                           style="-fx-fill: rgba(139, 69, 19, 0.3); -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <Label text="♪ RELAX TAPE ♪" translateY="-65"
+                                       style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                                              -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                                <HBox spacing="280" translateY="70" alignment="CENTER">
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                </HBox>
+                                <HBox spacing="40" translateY="75" alignment="CENTER">
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                </HBox>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+                    <Label text="CALM" style="-fx-font-family: 'Courier New'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                    <Label text="Peaceful &amp; Relaxing" style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-text-fill: #666666;"/>
+                </VBox>
+            </HBox>
+
+            <!-- Row 3: Romantic & Focus -->
+            <HBox spacing="50" alignment="CENTER">
+                <!-- Romantic Cassette -->
+                <VBox alignment="CENTER" spacing="12">
+                    <Button styleClass="cassette-button" onAction="#selectRomanticMood"
+                            prefWidth="340" prefHeight="200"
+                            style="-fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0;">
+                        <graphic>
+                            <StackPane>
+                                <Rectangle width="340" height="200" arcWidth="20" arcHeight="20"
+                                           style="-fx-fill: linear-gradient(to bottom, #FF69B4 0%, #FF1493 100%);
+                                                 -fx-stroke: #000000; -fx-stroke-width: 4;"/>
+                                <Rectangle width="280" height="120" translateY="-25" arcWidth="10" arcHeight="10"
+                                           style="-fx-fill: #FFF0F5; -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                </HBox>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                </HBox>
+                                <Rectangle width="120" height="35" translateY="-25"
+                                           style="-fx-fill: rgba(139, 69, 19, 0.3); -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <Label text="♪ LOVE SONG ♪" translateY="-65"
+                                       style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                                              -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                                <HBox spacing="280" translateY="70" alignment="CENTER">
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                </HBox>
+                                <HBox spacing="40" translateY="75" alignment="CENTER">
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                </HBox>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+                    <Label text="ROMANTIC" style="-fx-font-family: 'Courier New'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                    <Label text="Love &amp; Romance" style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-text-fill: #666666;"/>
+                </VBox>
+
+                <!-- Focus Cassette -->
+                <VBox alignment="CENTER" spacing="12">
+                    <Button styleClass="cassette-button" onAction="#selectFocusMood"
+                            prefWidth="340" prefHeight="200"
+                            style="-fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0;">
+                        <graphic>
+                            <StackPane>
+                                <Rectangle width="340" height="200" arcWidth="20" arcHeight="20"
+                                           style="-fx-fill: linear-gradient(to bottom, #9370DB 0%, #8A2BE2 100%);
+                                                 -fx-stroke: #000000; -fx-stroke-width: 4;"/>
+                                <Rectangle width="280" height="120" translateY="-25" arcWidth="10" arcHeight="10"
+                                           style="-fx-fill: #F8F8FF; -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                    <Circle radius="25" style="-fx-fill: white; -fx-stroke: #000000; -fx-stroke-width: 3;"/>
+                                </HBox>
+                                <HBox spacing="140" translateY="-25" alignment="CENTER">
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                    <Circle radius="12" style="-fx-fill: #8B4513;"/>
+                                </HBox>
+                                <Rectangle width="120" height="35" translateY="-25"
+                                           style="-fx-fill: rgba(139, 69, 19, 0.3); -fx-stroke: #000000; -fx-stroke-width: 2;"/>
+                                <Label text="♪ STUDY MODE ♪" translateY="-65"
+                                       style="-fx-font-family: 'Courier New'; -fx-font-size: 16px;
+                                              -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                                <HBox spacing="280" translateY="70" alignment="CENTER">
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                    <Circle radius="5" style="-fx-fill: #696969;"/>
+                                </HBox>
+                                <HBox spacing="40" translateY="75" alignment="CENTER">
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                    <Circle radius="6" style="-fx-fill: #2F4F4F;"/>
+                                </HBox>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+                    <Label text="FOCUS" style="-fx-font-family: 'Courier New'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000000;"/>
+                    <Label text="Concentration Mode" style="-fx-font-family: 'Courier New'; -fx-font-size: 13px; -fx-text-fill: #666666;"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

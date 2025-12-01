@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            style="-fx-background-color: linear-gradient(to bottom, #FFF0F5, #FFE4E1);">
+
+    <!-- Header -->
+    <top>
+        <VBox style="-fx-background-color: linear-gradient(to right, #FF69B4, #FF1493); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Button fx:id="backButton" text="←" onAction="#handleBack"
+                        style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 20px; -fx-background-radius: 8; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8; -fx-padding: 5 10 5 10; -fx-cursor: hand;"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button fx:id="settingsButton" text="⚙" onAction="#handleSettings"
+                        style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 20px; -fx-background-radius: 8; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8; -fx-padding: 5 10 5 10; -fx-cursor: hand;"/>
+            </HBox>
+
+            <VBox alignment="CENTER" spacing="5">
+                <VBox.margin>
+                    <Insets top="15"/>
+                </VBox.margin>
+
+                <VBox alignment="CENTER"
+                      style="-fx-background-color: rgba(255,255,255,0.2); -fx-background-radius: 12; -fx-padding: 10;">
+                    <Label text="Your Playlist"
+                           style="-fx-font-size: 12px; -fx-text-fill: rgba(255,255,255,0.9);"/>
+                    <Label fx:id="moodLabel" text="Happy Vibes 🎵"
+                           style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white; -fx-letter-spacing: 1px;"/>
+                </VBox>
+            </VBox>
+        </VBox>
+    </top>
+
+    <!-- Center - Song List -->
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true"
+                    style="-fx-background-color: transparent; -fx-background: transparent;">
+            <VBox>
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+
+                <ListView fx:id="songListView"
+                          style="-fx-background-color: transparent; -fx-border-color: transparent;"
+                          VBox.vgrow="ALWAYS">
+                </ListView>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- Bottom - Mini Player -->
+    <bottom>
+        <VBox fx:id="miniPlayer"
+              style="-fx-background-color: #B565D8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, -2);">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+
+            <!-- Progress Bar -->
+            <ProgressBar fx:id="progressBar" progress="0.0" maxWidth="Infinity"
+                         style="-fx-accent: white;"/>
+
+            <VBox.margin>
+                <Insets bottom="10"/>
+            </VBox.margin>
+
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <!-- Album Art Placeholder -->
+                <Label text="🎵"
+                       style="-fx-font-size: 24px; -fx-background-color: linear-gradient(to bottom right, #FF69B4, #FF1493); -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10;"/>
+
+                <!-- Song Info -->
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label fx:id="nowPlayingLabel" text="Song Title"
+                           style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label fx:id="nowPlayingArtist" text="Artist Name"
+                           style="-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 12px;"/>
+                </VBox>
+
+                <!-- Controls -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="prevButton" text="⏮" onAction="#handlePrevious"
+                            style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 18px; -fx-background-radius: 50%; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 50%; -fx-padding: 8; -fx-cursor: hand;"/>
+
+                    <Button fx:id="playPauseButton" text="▶" onAction="#handlePlayPause"
+                            style="-fx-background-color: white; -fx-text-fill: #B565D8; -fx-font-size: 20px; -fx-background-radius: 50%; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 50%; -fx-padding: 10; -fx-cursor: hand;"/>
+
+                    <Button fx:id="nextButton" text="⏭" onAction="#handleNext"
+                            style="-fx-background-color: rgba(255,255,255,0.3); -fx-text-fill: white; -fx-font-size: 18px; -fx-background-radius: 50%; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 50%; -fx-padding: 8; -fx-cursor: hand;"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </bottom>
+</BorderPane>

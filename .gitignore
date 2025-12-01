@@ -1,0 +1,15 @@
+# Build outputs
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Maven
+.mvn/
+
+# OS
+.DS_Store
+Thumbs.db

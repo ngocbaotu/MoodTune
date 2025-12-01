@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>MoodTune — Example Player</title>
+	<style>
+		body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:24px}
+		label,input{font-size:1rem}
+		#status{margin-top:12px;color:#444}
+	</style>
+</head>
+<body>
+	<h1>MoodTune — Example Player</h1>
+	<p>Fetch a small playlist from the backend and play the first track.</p>
+
+	<div>
+		<label>Feeling: <input id="feeling" value="calm"></label>
+		<button id="play">Fetch & Play</button>
+	</div>
+
+	<div id="status"></div>
+	<div style="margin-top:12px;">
+	  <audio id="player" controls style="width:100%"></audio>
+	  <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+	    <button id="prev">Prev</button>
+	    <button id="next">Next</button>
+	    <span id="now" style="margin-left:8px;color:#333">Not playing</span>
+	  </div>
+	</div>
+
+	<ul id="playlist" style="margin-top:12px;padding-left:18px"></ul>
+
+	<script>
+	// Backend host: defaults to same host with port 5000, but you can override with ?backend=http://host:port
+	const backendParam = new URLSearchParams(location.search).get('backend');
+	const backend = backendParam || `${location.protocol}//${location.hostname}:5000`;
+
+	async function getPlaylist(feeling = 'calm'){
+		const res = await fetch(backend + '/playlist', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({feeling})
+		});
+		if(!res.ok){
+			const body = await res.json().catch(()=>null);
+			throw new Error(body && body.message ? body.message : `HTTP ${res.status}`);
+		}
+		return res.json();
+	}
+
+	document.getElementById('play').addEventListener('click', async ()=>{
+		const status = document.getElementById('status');
+		status.textContent = 'Fetching playlist...';
+		const feeling = document.getElementById('feeling').value || 'calm';
+		try{
+				const data = await getPlaylist(feeling);
+				if(!data.tracks || data.tracks.length === 0){
+					status.textContent = 'No tracks returned for this feeling.';
+					return;
+				}
+				buildPlaylist(data.tracks);
+				playIndex(0);
+		}catch(err){
+			console.error(err);
+			status.textContent = 'Error: ' + (err.message || err);
+		}
+	});
+
+		// Playlist UI and controls
+		let tracks = [];
+		let currentIndex = -1;
+
+		function buildPlaylist(t){
+			tracks = t;
+			const list = document.getElementById('playlist');
+			list.innerHTML = '';
+			t.forEach((tr, i) => {
+				const li = document.createElement('li');
+				li.style.cursor = 'pointer';
+				li.style.marginBottom = '6px';
+				li.textContent = `${tr.title || 'Unknown'} — ${tr.artist || ''}`;
+				li.addEventListener('click', ()=> playIndex(i));
+				list.appendChild(li);
+			});
+			document.getElementById('status').textContent = `Loaded ${t.length} tracks`;
+		}
+
+		function setNowPlaying(text){
+			document.getElementById('now').textContent = text;
+		}
+
+		function playIndex(i){
+			if(!tracks || tracks.length === 0) return;
+			if(i < 0) i = 0;
+			if(i >= tracks.length) i = tracks.length - 1;
+			currentIndex = i;
+			const tr = tracks[i];
+			const audio = document.getElementById('player');
+			audio.src = backend + '/audius/stream/' + encodeURIComponent(tr.id);
+			setNowPlaying(`Loading: ${tr.title || 'Unknown'} — ${tr.artist || ''}`);
+			audio.play().then(()=>{
+				setNowPlaying(`Playing: ${tr.title || 'Unknown'} — ${tr.artist || ''}`);
+			}).catch(err=>{
+				console.warn('play failed', err);
+				setNowPlaying(`Ready: ${tr.title || 'Unknown'} — ${tr.artist || ''}`);
+			});
+			highlightCurrent();
+		}
+
+		function highlightCurrent(){
+			const list = document.getElementById('playlist');
+			Array.from(list.children).forEach((li, idx)=>{
+				li.style.fontWeight = idx===currentIndex? '700' : '400';
+				li.style.color = idx===currentIndex? '#111' : '#444';
+			});
+		}
+
+		document.getElementById('next').addEventListener('click', ()=>{
+			if(tracks.length===0) return;
+			playIndex(Math.min(tracks.length-1, currentIndex+1));
+		});
+		document.getElementById('prev').addEventListener('click', ()=>{
+			if(tracks.length===0) return;
+			playIndex(Math.max(0, currentIndex-1));
+		});
+
+		const audioEl = document.getElementById('player');
+		audioEl.addEventListener('ended', ()=>{
+			// auto-advance
+			if(currentIndex+1 < tracks.length) playIndex(currentIndex+1);
+		});
+
+	// Helpful note for file:// usage: use a local static server to avoid CORS issues, e.g.
+	// python3 -m http.server 8080 and open http://localhost:8080/frontend/files/player.html?backend=http://localhost:5000
+	</script>
+</body>
+</html>
